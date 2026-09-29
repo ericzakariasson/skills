@@ -1,13 +1,13 @@
 ---
 name: game-builder-blender-assets
-description: Authors camera-critical 3D assets for a homage game demo (hero characters, first-person weapon viewmodels, hero vehicles or set pieces) in Blender and exports GLB, one asset per specialist subagent at high craft, with an orchestrator-owned turnaround gate before the game binds the mesh. Companion to game-builder. Use only when the locked reference shots are 3D and a hero or close-up asset would otherwise be built from in-engine primitives. Prefer 2D sprites whenever the references are 2D or a 2D path can reach the visual bar. Not for props, distant background objects, or pixel-art demos.
+description: Authors camera-critical 3D assets for a homage game (hero characters, first-person weapon viewmodels, hero vehicles or set pieces) in Blender and exports GLB, one asset per specialist subagent at high craft, with an orchestrator-owned turnaround gate before the game binds the mesh. Companion to game-builder. Use only when the locked reference shots are 3D and a hero or close-up asset would otherwise be built from in-engine primitives. Prefer 2D sprites whenever the references are 2D or a 2D path can reach the visual bar. Not for props, distant background objects, or pixel-art games.
 license: MIT
 compatibility: Requires Blender (headless Python works) and a game engine or renderer that loads glTF 2.0 GLB files.
 ---
 
-# Game demo Blender assets
+# Game builder Blender assets
 
-Companion to the `game-builder` skill. Use it only when a homage demo needs authored 3D meshes. Never build hero characters as in-engine procedural primitives (parented boxes, cylinders, debug foot discs, floating eye spheres).
+Companion to the `game-builder` skill. Use it only when a homage game needs authored 3D meshes. Never build hero characters as in-engine procedural primitives (parented boxes, cylinders, debug foot discs, floating eye spheres).
 
 ## Rule
 
@@ -56,11 +56,11 @@ Decide from the locked refs' medium, not from genre alone. Skip by default unles
 | Locked refs are 3D and the brief locks a 3D camera on a walking or tracked hero | Blender-first with this skill |
 | Mixed refs, for example a pixel-art farming sim next to a 3D life sim | Prefer 2D unless the Orchestrator or user explicitly locks 3D |
 | Uncertain | Skip Blender and ask the Orchestrator. Do not start a GLB pass "to be safe" |
-| Hero weapon or vehicle silhouette at a locked 3D camera | Blender-first, only if the demo is already 3D |
+| Hero weapon or vehicle silhouette at a locked 3D camera | Blender-first, only if the game is already 3D |
 | Crates, fences, tools, billboard crops, background animals | In-engine procedural geometry or a generation pass is fine |
 | Temporary greybox while a justified Blender hero is in flight | In-engine is fine; ledger it as `placeholder` |
 
-If Stage C or a Diagnoser steer would sculpt a 3D hero from primitives inside the renderer, stop and run this skill, but only if 3D is needed. If the open failure is "looks like a bad 3D toy next to pixel-art refs", pivot the demo to 2D instead of starting or continuing a Blender pass.
+If Stage C or a Diagnoser steer would sculpt a 3D hero from primitives inside the renderer, stop and run this skill, but only if 3D is needed. If the open failure is "looks like a bad 3D toy next to pixel-art refs", pivot the game to 2D instead of starting or continuing a Blender pass.
 
 ## Pipeline for a 3D hero
 
@@ -74,7 +74,7 @@ Do these steps in order. Do not retarget gait or ship walk stills until the turn
 
 ### 2. Style target
 
-- Match the demo's 3D locked-ref craft tier (for example, readable low-poly at roughly 2k to 8k triangles for a cozy life-sim look), not a pixel-art SxS unless the demo is actually 2D.
+- Match the game's 3D locked-ref craft tier (for example, readable low-poly at roughly 2k to 8k triangles for a cozy life-sim look), not a pixel-art SxS unless the game is actually 2D.
 - Readable silhouette at the locked camera distance: large head, clear hat brim or hair, thick boots wider than the calves, a jacketed torso. Not a MetaHuman-style cinematic human unless the locked refs are that tier.
 - Continuous skin at joints, with no air gaps between limb parts. Soften toy-brick and boxy silhouettes. On camera-critical assets (first-person gun, hero body), a toy-brick, boxy, or sphere-mitten result is an automatic FAIL.
 - Palette from `art/LOOK.md`. Original names only. Never use franchise terms, and never feed refs as image-to-image input.
@@ -88,7 +88,7 @@ Do these steps in order. Do not retarget gait or ship walk stills until the turn
 
 ### 4. Turnaround gate (before retarget)
 
-Save these to the demo's `artifacts/` folder:
+Save these to the game's `artifacts/` folder:
 
 - A bind-pose still (T-pose or A-pose)
 - A turnaround: front, side, back
@@ -106,7 +106,7 @@ The Orchestrator alone passes or fails this gate before any gait work. Do not as
 
 ## Out of scope
 
-- Forcing Blender or GLB on a 2D or pixel-art demo. Use sprites.
+- Forcing Blender or GLB on a 2D or pixel-art game. Use sprites.
 - High-poly Unreal-style cinematic humans unless the locked refs demand that tier.
 - Asking a peer agent for the turnaround PASS or FAIL.
 - Rewriting gait continuity, or the whole world, to hide a bad mesh.
@@ -117,7 +117,7 @@ The Orchestrator alone passes or fails this gate before any gait work. Do not as
 ## Orchestrator checklist
 
 - [ ] Medium decided from the locked refs: 3D uses this skill; pixel art or 2D uses sprites and skips it
-- [ ] The hero went Blender-first only because the demo is 3D
+- [ ] The hero went Blender-first only because the game is 3D
 - [ ] Each camera-critical mesh owned by its own specialist subagent
 - [ ] GLB and bone remap documented
 - [ ] Turnaround gate PASS by the Orchestrator alone, before retarget
@@ -129,4 +129,4 @@ The Orchestrator alone passes or fails this gate before any gait work. Do not as
 - Stage A: lock the medium with the refs (2D pixel art or 3D). Do not plan a GLB hero for a pixel-art brief.
 - Stage B: a greybox or placeholder hero is fine.
 - Stages C3 and C5: camera-critical 3D characters go through this skill before the Critic's ART-PASS on those units.
-- Stage D: punches that ask to "fix the mannequin in the renderer" escalate to this skill only if the demo is 3D; otherwise escalate to sprite art.
+- Stage D: punches that ask to "fix the mannequin in the renderer" escalate to this skill only if the game is 3D; otherwise escalate to sprite art.

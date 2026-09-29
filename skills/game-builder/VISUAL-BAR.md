@@ -1,6 +1,6 @@
 # Visual Bar (hard gate)
 
-The bar is per demo, not a fixed global list. Locked refs are usually shipped AAA or high-end captures, and the demo must look like it belongs in the same SxS frame. Judge every locked criterion on the current capture set at full resolution, then on the blurred SxS. Every criterion is PASS or FAIL. One failing still fails the criterion. WIN requires every criterion in `art/BAR.md` to PASS.
+The bar is per game, not a fixed global list. Locked refs are usually shipped AAA or high-end captures, and the game must look like it belongs in the same SxS frame. Judge every locked criterion on the current capture set at full resolution, then on the blurred SxS. Every criterion is PASS or FAIL. One failing still fails the criterion. WIN requires every criterion in `art/BAR.md` to PASS.
 
 ## Contents
 
@@ -27,7 +27,7 @@ These five are in every `art/BAR.md`. Wording may adapt for 2D when the locked r
 
 **C2. Geometry and silhouette density.** PASS when matched crops show terrain, prop, and unit breakup comparable to the refs; readable sub-shapes; silhouette count in the same range; no primitive standing in for a real object. FAIL: stamped boxes, empty planes, tile seams, sparse where the ref is dense.
 
-**C3. SxS blur test.** Blur both halves equally until text is unreadable, then downscale. PASS when value structure, palette, density, and light direction read as the same genre and production tier in every pair. FAIL when the demo half reads flatter, emptier, or like a web page next to a game.
+**C3. SxS blur test.** Blur both halves equally until text is unreadable, then downscale. PASS when value structure, palette, density, and light direction read as the same genre and production tier in every pair. FAIL when the game half reads flatter, emptier, or like a web page next to a shipped game.
 
 **C4. Live capture provenance.** PASS when every still and walkthrough frame is from the running build at the delivered commit, at native resolution, with `MANIFEST.md` complete. Only cropping and labeling are allowed after capture. FAIL: mockups, composited plates, retouching, wrong build.
 
@@ -80,7 +80,7 @@ The Orchestrator fixes these before any score counts:
 
 Any of these in a verdict invalidates it. Any of these in a Builder handback or Orchestrator status line is a process FAIL. Rewordings with the same meaning count.
 
-- "fine for a browser toy", "fine for a homage", "fine for a slice", "fine for a demo"
+- "fine for a browser toy", "fine for a homage", "fine for a slice", "fine for a prototype"
 - "not photoreal, but", "not a AAA remake", "homage, not a remake"
 - "stylized low-poly is a valid choice" (when the locked refs are not low-poly stylized)
 - "close enough", "good enough", "mostly there", "acceptable for now", "nearly parity"

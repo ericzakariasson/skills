@@ -1,13 +1,13 @@
 ---
 name: game-builder
-description: Builds playable homage game demos (original takes on well-known games, with original names and art) whose in-game captures must hold up side by side with real shipped-game screenshots. Orchestrates separate planner, builder, and critic subagents through a brief with locked reference shots, a plan, a playable loop, a staged art pipeline, and live captures, then runs fresh-critic rounds against a per-demo Visual Bar until WIN, with a diagnoser for stuck loops and a final orchestrator visual read before handoff. Use when asked to build, polish, or compare homage game demos or vertical slices where visual quality next to real games matters, when a demo plays fine but its screenshots look like a browser toy beside the references, or when a reviewer keeps soft-passing weak visuals. Not for general app scaffolds or gameplay-only prototypes.
+description: Builds playable homage games (original takes on well-known games, with original names and art) whose in-game captures must hold up side by side with real shipped-game screenshots. Orchestrates separate planner, builder, and critic subagents through a brief with locked reference shots, a plan, a playable loop, a staged art pipeline, and live captures, then runs fresh-critic rounds against a per-game Visual Bar until WIN, with a diagnoser for stuck loops and a final orchestrator visual read before handoff. Use when asked to build, polish, or compare homage games or vertical slices where visual quality next to real games matters, when a game plays fine but its screenshots look like a browser toy beside the references, or when a reviewer keeps soft-passing weak visuals. Not for general app scaffolds or gameplay-only prototypes.
 license: MIT
 compatibility: Needs a host that can run roles as separate subagents or fresh sessions, and a critic that can view full-resolution images.
 ---
 
-# Game demo production
+# Game builder
 
-Ship a playable homage game demo whose in-game captures read at the same production tier as locked, real reference screenshots. Playable is the floor. Visual parity is the gate. Nothing is WIN until a fresh Critic returns WIN on the demo's Visual Bar, the Orchestrator's process checks pass, and the Orchestrator's own harsh visual read of the stills and side-by-sides agrees the picture is cohesive. Critic WIN alone is not enough.
+Build a playable homage game whose in-game captures read at the same production tier as locked, real reference screenshots. Playable is the floor. Visual parity is the gate. Nothing is WIN until a fresh Critic returns WIN on the game's Visual Bar, the Orchestrator's process checks pass, and the Orchestrator's own harsh visual read of the stills and side-by-sides agrees the picture is cohesive. Critic WIN alone is not enough.
 
 You are the Orchestrator. You own the loop and dispatch every other role. You never build and you never score.
 
@@ -42,10 +42,10 @@ Rounds inside Stage D are labeled R1, R2, ... Rn. Ten or more rounds is normal w
 - Orchestrator: the agent running this skill. Owns the loop. Does not build. Does not score.
 - Brief: `BRIEF.md`, one page, frozen at the end of Stage A.
 - Refs: real screenshots of shipped games in the target genre and UI style, stored in `refs-locked/` with `SOURCES.md`. Critic input only. Never shipped inside the game.
-- Visual Bar: the locked criterion list in `art/BAR.md` for this demo (universal core plus game-specific criteria). Every listed criterion must PASS for WIN.
+- Visual Bar: the locked criterion list in `art/BAR.md` for this game (universal core plus game-specific criteria). Every listed criterion must PASS for WIN.
 - Round (R<n>): one Builder pass against one Critic punch list, followed by a full re-capture and re-score.
 - Punch list: numbered, verifiable defects from the Critic. Each item names the still, the matched ref, the region, the observed defect, what the ref shows, and a done-when condition.
-- SxS: side-by-side composite, left = ref, right = demo, matched framing, labeled, with a blurred variant.
+- SxS: side-by-side composite, left = ref, right = game capture, matched framing, labeled, with a blurred variant.
 - Generation pass: any image, texture, or 3D asset generation step available in the host (generative image tool, procedural generator, sculpt and bake pipeline). The term is capability neutral.
 - Critic loop: dispatch, wait, critique, punch, redispatch. Repeat until WIN.
 - Stuck-loop diagnosis: after 3+ consecutive Stage D hard-gate FAILs (or a RECAPTURE streak with no visual progress), pause Builder punches, have a Diagnoser read the traces, then steer the Builder from its brief. Never lowers the Visual Bar.
@@ -98,11 +98,11 @@ not addressed: 4 (reason; proposed escalation rung if any)
 
 The full rubric is in [VISUAL-BAR.md](VISUAL-BAR.md). The essentials:
 
-- The bar is per demo. At Stage A, write `art/BAR.md` with 5 to 15 criteria: the universal core C1 to C5 plus game-specific criteria justified by the locked refs. Each row has an id, name, PASS when, FAIL signs, justifying ref ids, and `core` or `game`.
+- The bar is per game. At Stage A, write `art/BAR.md` with 5 to 15 criteria: the universal core C1 to C5 plus game-specific criteria justified by the locked refs. Each row has an id, name, PASS when, FAIL signs, justifying ref ids, and `core` or `game`.
 - Universal core: C1 materials and lighting, C2 geometry and silhouette density, C3 SxS blur test, C4 live capture provenance, C5 walkthrough consistency.
 - Freeze the bar after Stage A. Mid-loop you may only `BAR-EXPAND` (add criteria, logged, staying at or under 15). Never remove, merge away, or soften a criterion to exit.
 - Every criterion is PASS or FAIL on the current capture set at full resolution, then on the blurred SxS. One failing still fails the criterion.
-- Banned soft-WIN phrases ("close enough", "fine for a demo", "conditional WIN", and the rest of the list in VISUAL-BAR.md) invalidate a verdict and are a process FAIL in a handback or status line.
+- Banned soft-WIN phrases ("close enough", "fine for a prototype", "conditional WIN", and the rest of the list in VISUAL-BAR.md) invalidate a verdict and are a process FAIL in a handback or status line.
 - If the stack cannot reach the bar, climb the escalation ladder (art pipeline, renderer, or stack). Never lower the bar.
 
 ## Running the loop

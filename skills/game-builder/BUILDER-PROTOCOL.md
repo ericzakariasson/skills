@@ -1,6 +1,6 @@
 # Builder protocol
 
-The stage-by-stage runbook for the game demo loop. The Orchestrator follows all of it and hands each role only the parts that apply to it. The rubric is in `VISUAL-BAR.md` and the Critic's prompt is in `CRITIC-PROMPT.md`, both next to this file.
+The stage-by-stage runbook for building the game. The Orchestrator follows all of it and hands each role only the parts that apply to it. The rubric is in `VISUAL-BAR.md` and the Critic's prompt is in `CRITIC-PROMPT.md`, both next to this file.
 
 ## Contents
 
@@ -128,7 +128,7 @@ When, and only when, the locked refs demand a 3D walking hero or close NPC, do n
 1. Run the companion skill `game-builder-blender-assets`.
 2. Author mesh, UVs, and a simple humanoid rig in Blender in isolation; export GLB; pass the turnaround gate; then bind the existing gait system and delete the placeholder hero.
 3. In-engine procedural geometry and generation passes stay fine for props, crops, distant NPCs, billboards, and greybox while a justified Blender hero is in flight.
-4. Stage D punches that say "fix the mannequin in the renderer" escalate to that companion skill only if the demo is 3D; otherwise escalate to sprite art. If uncertain, ask the Orchestrator and prefer 2D.
+4. Stage D punches that say "fix the mannequin in the renderer" escalate to that companion skill only if the game is 3D; otherwise escalate to sprite art. If uncertain, ask the Orchestrator and prefer 2D.
 
 ## Escalation ladder
 
@@ -146,13 +146,13 @@ The Builder proposes a rung. The Orchestrator decides. The Critic never prescrib
 
 Trigger (any one is enough):
 
-- 3 or more consecutive Stage D hard-gate `FAIL` verdicts on the same demo with the same failing criteria family from `art/BAR.md` (for example SxS blur, density, or one game-specific criterion repeating).
+- 3 or more consecutive Stage D hard-gate `FAIL` verdicts on the same game with the same failing criteria family from `art/BAR.md` (for example SxS blur, density, or one game-specific criterion repeating).
 - A RECAPTURE streak of 2 or more with no visible change in the matched SxS blur pairs.
 - The Builder keeps shipping the same class of fix (chrome rails, plate overlays, one more prop) while the Critic's punch list stays structurally identical.
 
 When triggered, the Orchestrator must:
 
-1. Pause further Builder punches for that demo. Log `DIAGNOSE hold` in `artifacts/rounds.log`. Keep the playable preview up. Publish stays LOCKED.
+1. Pause further Builder punches for that game. Log `DIAGNOSE hold` in `artifacts/rounds.log`. Keep the playable preview up. Publish stays LOCKED.
 2. Spawn a Diagnoser as a fresh third agent, in a separate session from the Builder and the Critic. Give it files only: recent `artifacts/verdicts/`, `artifacts/rounds.log`, current stills and SxS (with blur variants), `BRIEF.md`, `art/LOOK.md`, the Visual Bar (`art/BAR.md` plus `VISUAL-BAR.md` or `CRITIC-PROMPT.md`), and short extracts of Builder handbacks. Do not paste Builder chat into the Critic. Do not ask the Diagnoser to soft-pass.
 3. The Diagnoser writes `artifacts/diagnosis/R<n>-steer.md` with exactly:
    - Root cause: why the loop is not progressing (wrong rung, capture provenance, Critic and Builder role blur, stack ceiling, punch list too shallow, and so on).
@@ -177,7 +177,7 @@ The Builder captures with scripts committed under `tools/`:
 2. `artifacts/stills/MANIFEST.md`: for each still, the file, build commit, resolution, scene, camera, timestamp, and matched ref.
 3. Walkthrough: 45 to 90 seconds, 720p minimum (prefer 1080p), from the live build. Cover boot or title, the core loop, a win or fail state, and HUD states. Save as `artifacts/walkthrough.mp4`.
 4. Walkthrough frames: extract 8 to 12 evenly spaced frames to `artifacts/walkthrough-frames/` so a Critic that cannot play video can still score C5 (walkthrough consistency).
-5. SxS: `tools/make-sxs` builds `artifacts/sxs-vs-refs/sxs-NN.png` (left = ref labeled `REF (review only)`, right = demo labeled `DEMO`, matched height) and `sxs-NN-blur.png` (both halves blurred with the same radius, then downscaled).
+5. SxS: `tools/make-sxs` builds `artifacts/sxs-vs-refs/sxs-NN.png` (left = ref labeled `REF (review only)`, right = game capture labeled `GAME`, matched height) and `sxs-NN-blur.png` (both halves blurred with the same radius, then downscaled).
 6. Handback in the fixed format. No quality claims.
 
 ### Critic loop
@@ -191,7 +191,7 @@ The Orchestrator runs:
 5. `FAIL`: log `R<n> FAIL` and save the verdict to `artifacts/verdicts/R<nn>.md`. If this is the 3rd consecutive hard FAIL (or another stuck-loop trigger fired), do not dispatch another punch yet: run stuck-loop diagnosis, then dispatch the Builder with the Diagnoser steer brief. Otherwise dispatch the Builder with the punch list verbatim. The Builder fixes, re-captures every still and the walkthrough (fixes change every frame, so partial re-captures are rejected), and hands back. Return to step 1 as R<n+1>.
 6. `WIN` (Critic stamp only): do not hand off yet.
    1. Run the pre-handoff verification below. If it fails, fix the process issue and re-run the Critic.
-   2. Run the Orchestrator harsh visual (required). Open every current still and every SxS (with blur variants) at full resolution yourself. Write a short plain read of what the picture actually shows: art-system unity; proportion and scale consistency across characters, props, buildings, and animals; perspective and ground-plane logic; lighting and shadow coherence; and whether the demo half belongs next to the locked refs. The user's visual judgment overrides Critic WIN for shippability. Incoherent art, off proportions, or broken perspective is a FAIL even if the Critic stamped WIN.
+   2. Run the Orchestrator harsh visual (required). Open every current still and every SxS (with blur variants) at full resolution yourself. Write a short plain read of what the picture actually shows: art-system unity; proportion and scale consistency across characters, props, buildings, and animals; perspective and ground-plane logic; lighting and shadow coherence; and whether the game half belongs next to the locked refs. The user's visual judgment overrides Critic WIN for shippability. Incoherent art, off proportions, or broken perspective is a FAIL even if the Critic stamped WIN.
    3. If the harsh visual FAILs: log `WIN voided` (or `ORCH-FAIL`) in `artifacts/rounds.log`, tell the user once with the stills and the plain read, treat the Critic WIN as void, keep Publish LOCKED, and resume Stage D punches (or stuck-loop diagnosis if the voided WIN sits on a FAIL streak). Do not soft-WIN. Do not hand off.
    4. If the harsh visual PASSes and pre-handoff is clean: log `WIN` and hand off. Post the stills and the plain read to the user.
 7. Post one status line to the user after every round, in the format given in `SKILL.md`. Do not ask permission to continue. On a diagnosis hold, the status line's `next` is `Diagnoser`, then `Builder steered R<n+1>`.
@@ -242,7 +242,7 @@ refs-locked/
   SOURCES.md
 art/
   LOOK.md
-  BAR.md                       locked Visual Bar for this demo (core + game-specific)
+  BAR.md                       locked Visual Bar for this game (core + game-specific)
   LEDGER.md
   GENERATION-LOG.md
 artifacts/
@@ -303,7 +303,7 @@ tools/
 ## Handoff template
 
 ```
-## Game demo handoff
+## Game builder handoff
 Project: <original title> (<stack>)
 Stage reached: <A|B|C0..C5|D|E>
 Verdict: WIN | FAIL (best so far) | STOPPED BY USER | BLOCKED (<reason>)

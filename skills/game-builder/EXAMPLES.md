@@ -6,7 +6,7 @@ All examples assume this `art/BAR.md` (six criteria): C1 Materials and lighting,
 
 ## Contents
 
-1. Critic verdict on a flat demo
+1. Critic verdict on a flat-looking game
 2. Punch item wording
 3. Using RECAPTURE
 4. Critic behavior across rounds
@@ -16,7 +16,7 @@ All examples assume this `art/BAR.md` (six criteria): C1 Materials and lighting,
 8. Refs
 9. A valid WIN
 
-## 1. Critic verdict on a flat demo
+## 1. Critic verdict on a flat-looking game
 
 Situation: R4. Stills show a textured hero unit on a single-color green ground plane, no contact shadows, HUD in a default sans-serif over a translucent black strip. Gameplay loop works.
 
@@ -24,7 +24,7 @@ Bad (soft WIN, invalid):
 
 ```
 Verdict: WIN (with reservations)
-The demo has come a long way since R1 and the loop is genuinely fun. Ground is still
+The game has come a long way since R1 and the loop is genuinely fun. Ground is still
 a bit flat and the HUD could use more chrome, but for a browser homage that is not
 trying to be photoreal this is a solid slice. Score 7/10. Ship it.
 ```
@@ -45,7 +45,7 @@ PUNCH LIST:
 2. [C1 Materials and lighting] all stills, unit and prop bases: no contact darkening where objects meet the ground; refs show ambient occlusion at every base and crevice. Done when every still shows contact shadows under units and props.
 3. [C1 Materials and lighting] still-03 vs ref-03, ground and walls: single-color surfaces with no roughness or normal detail; ref shows worn stone with specular breakup. Done when no large surface in any still reads as a single flat color.
 4. [C6 HUD craft] all stills, HUD strip: default sans-serif typeface over a translucent black bar; ref HUD uses a weighted display typeface, framed panels, and an icon set. Done when the HUD reads as game UI in the ref grammar at 1080p and at half scale with no default fonts.
-5. [C3 SxS blur test] sxs-01-blur through sxs-04-blur: demo half reads flatter and emptier with a higher-contrast primary green; refs read as dense mid-value scenes. Done when every blurred pair reads as the same production tier.
+5. [C3 SxS blur test] sxs-01-blur through sxs-04-blur: game half reads flatter and emptier with a higher-contrast primary green; refs read as dense mid-value scenes. Done when every blurred pair reads as the same production tier.
 ```
 
 ## 2. Punch item wording
@@ -65,7 +65,7 @@ VERDICT: RECAPTURE
 1. Please capture from a more flattering angle so the ground reads better.
 ```
 
-Why: framing is set by the refs, not by what flatters the demo. The ground defect is a C2 FAIL and belongs in a punch list.
+Why: framing is set by the refs, not by what flatters the game. The ground defect is a C2 FAIL and belongs in a punch list.
 
 Good:
 
