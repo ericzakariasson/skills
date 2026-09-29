@@ -91,7 +91,7 @@ Gate: the placeholder scene, blurred SxS against the matched ref, already reads 
 C2. Materials. Replace every placeholder material with a material set (albedo, roughness, normal, optional AO and height) produced by generation passes or procedural generation. Break tile repetition with detail layers, decals, and variation. Ground reads as surface, not plane.
 Gate: no flat single-color surface in any planned camera. Critic art check on criterion C1 (materials and lighting).
 
-C3. Geometry density. Hero units, props, terrain silhouettes, instanced scatter, debris, decals. LODs if performance requires. Match silhouette count and detail to the ref at the locked camera distance. Only use 3D if needed: if the locked refs are 2D or pixel art (or 2D can hit the bar), use sprites and atlases and do not force GLB. When the refs lock 3D for a hero or camera-tracked character, go Blender-first with the companion skill `game-demo-blender-assets` (GLB plus a turnaround gate before gait retarget). Do not ship procedural primitive 3D heroes as final.
+C3. Geometry density. Hero units, props, terrain silhouettes, instanced scatter, debris, decals. LODs if performance requires. Match silhouette count and detail to the ref at the locked camera distance. Only use 3D if needed: if the locked refs are 2D or pixel art (or 2D can hit the bar), use sprites and atlases and do not force GLB. When the refs lock 3D for a hero or camera-tracked character, go Blender-first with the companion skill `game-builder-blender-assets` (GLB plus a turnaround gate before gait retarget). Do not ship procedural primitive 3D heroes as final.
 Gate: no primitive stands in for an object in any planned camera, and the silhouette range matches the matched ref crops. Critic art check on criterion C2 (geometry and silhouette density).
 
 C4. HUD art. Frame and chrome, panels, icon set, typeface with hierarchy, text contrast treatment, every HUD state in the brief (health, resources, minimap, objectives, prompts as applicable). Fonts must be original or licensed for redistribution.
@@ -125,7 +125,7 @@ Only use 3D if needed. If the locked refs are 2D or pixel art, or a 2D sprite pa
 
 When, and only when, the locked refs demand a 3D walking hero or close NPC, do not author the final mesh as in-engine primitives (boxes, cylinders, debug foot discs, floating eye spheres). That path produces shippable gait on unshippable characters. Turnaround and hero visual gates belong to the Orchestrator; do not ask another agent for the PASS or FAIL.
 
-1. Run the companion skill `game-demo-blender-assets`.
+1. Run the companion skill `game-builder-blender-assets`.
 2. Author mesh, UVs, and a simple humanoid rig in Blender in isolation; export GLB; pass the turnaround gate; then bind the existing gait system and delete the placeholder hero.
 3. In-engine procedural geometry and generation passes stay fine for props, crops, distant NPCs, billboards, and greybox while a justified Blender hero is in flight.
 4. Stage D punches that say "fix the mannequin in the renderer" escalate to that companion skill only if the demo is 3D; otherwise escalate to sprite art. If uncertain, ask the Orchestrator and prefer 2D.

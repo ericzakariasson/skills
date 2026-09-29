@@ -1,5 +1,5 @@
 ---
-name: game-demo-production
+name: game-builder
 description: Builds playable homage game demos (original takes on well-known games, with original names and art) whose in-game captures must hold up side by side with real shipped-game screenshots. Orchestrates separate planner, builder, and critic subagents through a brief with locked reference shots, a plan, a playable loop, a staged art pipeline, and live captures, then runs fresh-critic rounds against a per-demo Visual Bar until WIN, with a diagnoser for stuck loops and a final orchestrator visual read before handoff. Use when asked to build, polish, or compare homage game demos or vertical slices where visual quality next to real games matters, when a demo plays fine but its screenshots look like a browser toy beside the references, or when a reviewer keeps soft-passing weak visuals. Not for general app scaffolds or gameplay-only prototypes.
 license: MIT
 compatibility: Needs a host that can run roles as separate subagents or fresh sessions, and a critic that can view full-resolution images.
@@ -20,7 +20,7 @@ Keep these next to this file and read each one when the loop reaches it.
 - [CRITIC-PROMPT.md](CRITIC-PROMPT.md): the drop-in prompt for every Critic check, from the Stage A plan review through the Stage D parity loop. Self-contained.
 - [EXAMPLES.md](EXAMPLES.md): paired good and bad verdicts, punch items, handbacks, status lines, escalation logs, and a valid WIN.
 
-For authored 3D heroes and other camera-critical meshes, also use the companion skill `game-demo-blender-assets` from the same repository, but only when the locked refs are 3D. Install it with `npx skills add ericzakariasson/skills --skill game-demo-blender-assets`.
+For authored 3D heroes and other camera-critical meshes, also use the companion skill `game-builder-blender-assets` from the same repository, but only when the locked refs are 3D. Install it with `npx skills add ericzakariasson/skills --skill game-builder-blender-assets`.
 
 ## Loop at a glance
 

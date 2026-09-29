@@ -1,13 +1,13 @@
 ---
-name: game-demo-blender-assets
-description: Authors camera-critical 3D assets for a homage game demo (hero characters, first-person weapon viewmodels, hero vehicles or set pieces) in Blender and exports GLB, one asset per specialist subagent at high craft, with an orchestrator-owned turnaround gate before the game binds the mesh. Companion to game-demo-production. Use only when the locked reference shots are 3D and a hero or close-up asset would otherwise be built from in-engine primitives. Prefer 2D sprites whenever the references are 2D or a 2D path can reach the visual bar. Not for props, distant background objects, or pixel-art demos.
+name: game-builder-blender-assets
+description: Authors camera-critical 3D assets for a homage game demo (hero characters, first-person weapon viewmodels, hero vehicles or set pieces) in Blender and exports GLB, one asset per specialist subagent at high craft, with an orchestrator-owned turnaround gate before the game binds the mesh. Companion to game-builder. Use only when the locked reference shots are 3D and a hero or close-up asset would otherwise be built from in-engine primitives. Prefer 2D sprites whenever the references are 2D or a 2D path can reach the visual bar. Not for props, distant background objects, or pixel-art demos.
 license: MIT
 compatibility: Requires Blender (headless Python works) and a game engine or renderer that loads glTF 2.0 GLB files.
 ---
 
 # Game demo Blender assets
 
-Companion to the `game-demo-production` skill. Use it only when a homage demo needs authored 3D meshes. Never build hero characters as in-engine procedural primitives (parented boxes, cylinders, debug foot discs, floating eye spheres).
+Companion to the `game-builder` skill. Use it only when a homage demo needs authored 3D meshes. Never build hero characters as in-engine procedural primitives (parented boxes, cylinders, debug foot discs, floating eye spheres).
 
 ## Rule
 
@@ -23,7 +23,7 @@ Do not batch camera-critical 3D models inside the game Builder. Each important m
 
 | Role | Owns |
 |---|---|
-| Builder (from `game-demo-production`) | World, systems, loading and binding, Critic loop. Consumes finished GLBs |
+| Builder (from `game-builder`) | World, systems, loading and binding, Critic loop. Consumes finished GLBs |
 | Asset specialist A | One hero body or character |
 | Asset specialist B | One hero weapon or viewmodel (for example, a first-person rifle) |
 | Asset specialist C | One camera-critical prop, vehicle, or set piece |
@@ -122,9 +122,9 @@ The Orchestrator alone passes or fails this gate before any gait work. Do not as
 - [ ] GLB and bone remap documented
 - [ ] Turnaround gate PASS by the Orchestrator alone, before retarget
 - [ ] Idle and walk use the same mesh
-- [ ] Ledger updated; Publish still LOCKED until the `game-demo-production` Critic WIN and harsh visual rules pass
+- [ ] Ledger updated; Publish still LOCKED until the `game-builder` Critic WIN and harsh visual rules pass
 
-## Relation to game-demo-production stages
+## Relation to game-builder stages
 
 - Stage A: lock the medium with the refs (2D pixel art or 3D). Do not plan a GLB hero for a pixel-art brief.
 - Stage B: a greybox or placeholder hero is fine.

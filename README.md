@@ -13,7 +13,7 @@ npx skills add ericzakariasson/skills
 Install a single skill:
 
 ```bash
-npx skills add ericzakariasson/skills --skill game-demo-production
+npx skills add ericzakariasson/skills --skill game-builder
 ```
 
 List the available skills without installing anything:
@@ -24,8 +24,8 @@ npx skills add ericzakariasson/skills --list
 
 ## Skills
 
-- `game-demo-production`: builds playable homage game demos through a planner, builder, and critic loop that repeats until in-game captures hold up next to real shipped-game screenshots.
-- `game-demo-blender-assets`: companion for 3D demos that authors hero characters and other camera-critical meshes in Blender and exports GLB, one asset per specialist subagent.
+- `game-builder`: builds playable homage game demos through a planner, builder, and critic loop that repeats until in-game captures hold up next to real shipped-game screenshots.
+- `game-builder-blender-assets`: companion for 3D demos that authors hero characters and other camera-critical meshes in Blender and exports GLB, one asset per specialist subagent.
 
 ## License
 
