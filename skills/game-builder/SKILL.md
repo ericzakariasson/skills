@@ -15,10 +15,10 @@ You are the Orchestrator. You own the loop and dispatch every other role. You ne
 
 Keep these next to this file and read each one when the loop reaches it.
 
-- [BUILDER-PROTOCOL.md](BUILDER-PROTOCOL.md): the full runbook. Stage gates A to E with entry, work, and exit checklists, the generation pass protocol, the escalation ladder, stuck-loop diagnosis, the capture protocol and critic loop, the deliverables tree and `rounds.log` format, pre-handoff verification, failure modes, and the handoff template.
-- [VISUAL-BAR.md](VISUAL-BAR.md): the hard gate. How to build `art/BAR.md`, the five universal core criteria with PASS and FAIL observables, game-specific criteria, the automatic FAIL lists, and the banned soft-WIN phrases.
-- [CRITIC-PROMPT.md](CRITIC-PROMPT.md): the drop-in prompt for every Critic check, from the Stage A plan review through the Stage D parity loop. Self-contained.
-- [EXAMPLES.md](EXAMPLES.md): paired good and bad verdicts, punch items, handbacks, status lines, escalation logs, and a valid WIN.
+- [builder-protocol.md](builder-protocol.md): the full runbook. Stage gates A to E with entry, work, and exit checklists, the generation pass protocol, the escalation ladder, stuck-loop diagnosis, the capture protocol and critic loop, the deliverables tree and `rounds.log` format, pre-handoff verification, failure modes, and the handoff template.
+- [visual-bar.md](visual-bar.md): the hard gate. How to build `art/BAR.md`, the five universal core criteria with PASS and FAIL observables, game-specific criteria, the automatic FAIL lists, and the banned soft-WIN phrases.
+- [critic-prompt.md](critic-prompt.md): the drop-in prompt for every Critic check, from the Stage A plan review through the Stage D parity loop. Self-contained.
+- [examples.md](examples.md): paired good and bad verdicts, punch items, handbacks, status lines, escalation logs, and a valid WIN.
 
 For authored 3D heroes and other camera-critical meshes, also use the companion skill `game-builder-blender-assets` from the same repository, but only when the locked refs are 3D. Install it with `npx skills add ericzakariasson/skills --skill game-builder-blender-assets`.
 
@@ -82,7 +82,7 @@ Capability requirements:
 
 - Planner and Builder: the strongest available planning and coding capability in the host run.
 - Critic: must view images at full resolution. If no image-capable Critic exists in the host run, the loop is invalid, so report BLOCKED. Never score from text descriptions of stills.
-- The Critic is spawned fresh for every check with the same prompt ([CRITIC-PROMPT.md](CRITIC-PROMPT.md)), the same refs, and the current captures. It receives the previous verdict as a file. It never receives Builder chat, Builder notes, or Orchestrator commentary.
+- The Critic is spawned fresh for every check with the same prompt ([critic-prompt.md](critic-prompt.md)), the same refs, and the current captures. It receives the previous verdict as a file. It never receives Builder chat, Builder notes, or Orchestrator commentary.
 
 Builder handback format (no quality claims allowed):
 
@@ -96,18 +96,18 @@ not addressed: 4 (reason; proposed escalation rung if any)
 
 ## Visual Bar in brief
 
-The full rubric is in [VISUAL-BAR.md](VISUAL-BAR.md). The essentials:
+The full rubric is in [visual-bar.md](visual-bar.md). The essentials:
 
 - The bar is per game. At Stage A, write `art/BAR.md` with 5 to 15 criteria: the universal core C1 to C5 plus game-specific criteria justified by the locked refs. Each row has an id, name, PASS when, FAIL signs, justifying ref ids, and `core` or `game`.
 - Universal core: C1 materials and lighting, C2 geometry and silhouette density, C3 SxS blur test, C4 live capture provenance, C5 walkthrough consistency.
 - Freeze the bar after Stage A. Mid-loop you may only `BAR-EXPAND` (add criteria, logged, staying at or under 15). Never remove, merge away, or soften a criterion to exit.
 - Every criterion is PASS or FAIL on the current capture set at full resolution, then on the blurred SxS. One failing still fails the criterion.
-- Banned soft-WIN phrases ("close enough", "fine for a prototype", "conditional WIN", and the rest of the list in VISUAL-BAR.md) invalidate a verdict and are a process FAIL in a handback or status line.
+- Banned soft-WIN phrases ("close enough", "fine for a prototype", "conditional WIN", and the rest of the list in visual-bar.md) invalidate a verdict and are a process FAIL in a handback or status line.
 - If the stack cannot reach the bar, climb the escalation ladder (art pipeline, renderer, or stack). Never lower the bar.
 
 ## Running the loop
 
-Track progress with this checklist. Each step's entry conditions, work, and exit checklist are in [BUILDER-PROTOCOL.md](BUILDER-PROTOCOL.md).
+Track progress with this checklist. Each step's entry conditions, work, and exit checklist are in [builder-protocol.md](builder-protocol.md).
 
 - [ ] Stage A: `BRIEF.md` with `Publish: LOCKED`; 4 to 8 locked refs plus `SOURCES.md`; a stack that meets the renderer requirements; the Planner's `PLAN.md`; core abstractions smoke-run; `art/LEDGER.md` v0; `art/BAR.md` locked; optional Critic plan review
 - [ ] Stage B: playable loop with placeholders, boot verified exit 0, camera locked, renderer contract swap tested, Critic `B-PASS (loop only, NOT A VISUAL WIN)`
