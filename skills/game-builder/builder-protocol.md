@@ -1,6 +1,6 @@
 # Builder protocol
 
-The stage-by-stage runbook for building the game. The Orchestrator follows all of it and hands each role only the parts that apply to it. The rubric is in `VISUAL-BAR.md` and the Critic's prompt is in `CRITIC-PROMPT.md`, both next to this file.
+The stage-by-stage runbook for building the game. The Orchestrator follows all of it and hands each role only the parts that apply to it. The rubric is in `visual-bar.md` and the Critic's prompt is in `critic-prompt.md`, both next to this file.
 
 ## Contents
 
@@ -35,7 +35,7 @@ Work:
 5. Dispatch the Planner. `PLAN.md` must answer: genre loop and pacing; camera and space model; entity and component boundaries; data flow (input to command to simulation to render); win and fail conditions; stable vs swappable layers (art, levels, HUD skin); renderer contract (what the renderer needs from the world: materials, lights, shadow casters, post stack, HUD data); art plan (look target per ref, lighting rig, material families, density strategy, HUD grammar); risk list with escalation triggers. If any section is thin, send it back before coding.
 6. Implement core abstractions: world or scene graph, entity update loop, input to command to state, renderer contract, camera, fog and HUD hooks. Compile and smoke-run one scene.
 7. Create `art/LEDGER.md` v0: every visible thing in the plan, its type, intended source (generation pass, procedural, authored), status `placeholder`, and the ref it targets.
-8. Lock `art/BAR.md` following `VISUAL-BAR.md`: universal core (C1 to C5) plus any game-specific criteria justified by the locked refs. Total criteria must be 5 to 15, numbered C1..Cn. Include PASS when, FAIL signs, justifying ref ids, and `core` or `game` for each.
+8. Lock `art/BAR.md` following `visual-bar.md`: universal core (C1 to C5) plus any game-specific criteria justified by the locked refs. Total criteria must be 5 to 15, numbered C1..Cn. Include PASS when, FAIL signs, justifying ref ids, and `core` or `game` for each.
 9. Recommended: Critic plan review. The Critic reads `PLAN.md`, `art/BAR.md`, and the refs and returns `VERDICT: PLAN-OK` or `VERDICT: PLAN-GAPS` with numbered gaps in the path to the locked Visual Bar. It is the cheapest round you will ever run.
 
 Exit checklist:
@@ -153,7 +153,7 @@ Trigger (any one is enough):
 When triggered, the Orchestrator must:
 
 1. Pause further Builder punches for that game. Log `DIAGNOSE hold` in `artifacts/rounds.log`. Keep the playable preview up. Publish stays LOCKED.
-2. Spawn a Diagnoser as a fresh third agent, in a separate session from the Builder and the Critic. Give it files only: recent `artifacts/verdicts/`, `artifacts/rounds.log`, current stills and SxS (with blur variants), `BRIEF.md`, `art/LOOK.md`, the Visual Bar (`art/BAR.md` plus `VISUAL-BAR.md` or `CRITIC-PROMPT.md`), and short extracts of Builder handbacks. Do not paste Builder chat into the Critic. Do not ask the Diagnoser to soft-pass.
+2. Spawn a Diagnoser as a fresh third agent, in a separate session from the Builder and the Critic. Give it files only: recent `artifacts/verdicts/`, `artifacts/rounds.log`, current stills and SxS (with blur variants), `BRIEF.md`, `art/LOOK.md`, the Visual Bar (`art/BAR.md` plus `visual-bar.md` or `critic-prompt.md`), and short extracts of Builder handbacks. Do not paste Builder chat into the Critic. Do not ask the Diagnoser to soft-pass.
 3. The Diagnoser writes `artifacts/diagnosis/R<n>-steer.md` with exactly:
    - Root cause: why the loop is not progressing (wrong rung, capture provenance, Critic and Builder role blur, stack ceiling, punch list too shallow, and so on).
    - Evidence: cited stills, SxS pairs, and verdict lines.
@@ -185,7 +185,7 @@ The Builder captures with scripts committed under `tools/`:
 The Orchestrator runs:
 
 1. Check the capture spec (counts, resolution, manifest, video length). If anything is short, send it back for capture without spawning the Critic.
-2. Spawn a fresh Critic with `CRITIC-PROMPT.md`, `BRIEF.md`, `art/LOOK.md`, `art/BAR.md`, `refs-locked/`, the capture set, and the previous verdict file.
+2. Spawn a fresh Critic with `critic-prompt.md`, `BRIEF.md`, `art/LOOK.md`, `art/BAR.md`, `refs-locked/`, the capture set, and the previous verdict file.
 3. Validate the verdict: exact format, every criterion in `art/BAR.md`, every still cited, no banned phrases, no numeric scores. Reject and re-run the Critic if it is invalid or if it scored a different set than `art/BAR.md`.
 4. `RECAPTURE`: fix the capture defects, re-capture, re-score. Not a round.
 5. `FAIL`: log `R<n> FAIL` and save the verdict to `artifacts/verdicts/R<nn>.md`. If this is the 3rd consecutive hard FAIL (or another stuck-loop trigger fired), do not dispatch another punch yet: run stuck-loop diagnosis, then dispatch the Builder with the Diagnoser steer brief. Otherwise dispatch the Builder with the punch list verbatim. The Builder fixes, re-captures every still and the walkthrough (fixes change every frame, so partial re-captures are rejected), and hands back. Return to step 1 as R<n+1>.
@@ -209,7 +209,7 @@ Run only when the user or the host launch config names the legs. Never invent le
 
 ## Critic contract
 
-The full drop-in prompt, including the exact output block for every verdict, is `CRITIC-PROMPT.md`. What the Orchestrator needs in order to dispatch and validate:
+The full drop-in prompt, including the exact output block for every verdict, is `critic-prompt.md`. What the Orchestrator needs in order to dispatch and validate:
 
 Inputs (files only): `BRIEF.md`, `art/LOOK.md`, `art/BAR.md`, `refs-locked/*` with `SOURCES.md`, `artifacts/stills/*` with `MANIFEST.md`, `artifacts/sxs-vs-refs/*`, `artifacts/walkthrough.mp4` or `artifacts/walkthrough-frames/*`, the previous verdict file, scope, round, and commit.
 

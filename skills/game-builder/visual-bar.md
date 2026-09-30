@@ -88,4 +88,4 @@ Any of these in a verdict invalidates it. Any of these in a Builder handback or 
 - "given time constraints", "for this round", "considering the stack", "impressive for a web build"
 - "gameplay is solid, so", "big improvement over last round" used as grounds for PASS
 
-If the stack cannot reach the bar with current art, change the stack or the art pipeline (see the escalation ladder in `BUILDER-PROTOCOL.md`). Never lower the bar. Never delete criteria from `art/BAR.md` to make WIN easier.
+If the stack cannot reach the bar with current art, change the stack or the art pipeline (see the escalation ladder in `builder-protocol.md`). Never lower the bar. Never delete criteria from `art/BAR.md` to make WIN easier.
