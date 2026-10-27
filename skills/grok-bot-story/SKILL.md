@@ -29,13 +29,12 @@ curl -fsSL --remote-name-all "$base/collect.py" "$base/collect_app_state.py" "$b
 
 ## 1. Onboarding (in chat, one widget at most)
 
-Open with one short line, then ask a single short question widget with these three questions. Prefill every default so the user can just confirm.
+Open with one short line, then ask a single short question widget with these two questions. Prefill every default so the user can just confirm.
 
 1. **Name on the Page.** Default to the name from their profile or memory. Free text.
-2. **Time zone.** Default to the device zone, or the one in memory. Say in one line that hour of day, best day and streak stats are counted in this zone. Single choice: the default, plus 2 or 3 likely others, plus free text.
-3. **Bots to leave out.** Multi-select of the user's bots by name, nothing selected by default. Use this for test bots or bots they don't want on a public card.
+2. **Bots to leave out.** Multi-select of the user's bots by name, nothing selected by default. Use this for test bots or bots they don't want on a public card.
 
-Don't ask anything else. If the user skips the widget, use the defaults.
+Don't ask anything else. For the time zone, use the zone the user is in now: the device zone, or the one in memory. Don't ask about it or offer a list. If the user skips the widget, use the defaults.
 
 Before you build, say the date range you found in one line, for example "I found activity from Jul 29 to Sep 9, 2026, so the Page covers those 43 days." If the range is short, say so plainly.
 

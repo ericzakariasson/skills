@@ -2,17 +2,12 @@
 
 **User:** make me my grok bot story
 
-**Bot:** Happy to. Three quick things so the numbers come out right:
+**Bot:** Happy to. Two quick things so the numbers come out right:
 
-> **Widget (one card, three questions)**
+> **Widget (one card, two questions)**
 >
 > 1. *Name on the Page* (text, prefilled): `Sam`
-> 2. *Time zone* (single choice). Hour of day, best day and streak are counted in this zone.
->    - America/New_York (this device) *(selected)*
->    - America/Los_Angeles
->    - Europe/London
->    - Other: ____
-> 3. *Leave any bots out?* (multi-select, none selected)
+> 2. *Leave any bots out?* (multi-select, none selected)
 >    - Travel
 >    - Inbox Helper
 >    - Test Bot 2
@@ -20,7 +15,7 @@
 >
 > [Build it]
 
-**User:** *(keeps Sam and New York, ticks Test Bot 2, taps Build it)*
+**User:** *(keeps Sam, ticks Test Bot 2, taps Build it)*
 
 **Bot:** I found activity from Jul 29 to Sep 9, 2026, so the Page covers those 43 days. Building it now.
 
