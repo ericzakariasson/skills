@@ -1,24 +1,31 @@
 ---
 name: grok-bot-story
-description: >-
-  Build the user a personal "<Name> on Grok Bot" story Page from their own Grok
-  Bot activity (messages, bots, hours, streaks, connectors, routines, shipped
-  bots) with a shareable poster at the end. Use when the user asks for their
-  Grok Bot story, recap, year in review, wrapped, stats about how they use Grok
-  Bot, or a card they can share about their bots. Also use when a routine asks
-  for a monthly rebuild of that Page.
+description: Builds the user a personal "<Name> on Grok Bot" story Page from their own Grok Bot activity (messages, bots, hours, streaks, connectors, routines, shipped bots) with a shareable poster at the end. Use when the user asks for their Grok Bot story, recap, year in review, wrapped, stats about how they use Grok Bot, or a card they can share about their bots. Also use when a routine asks for a monthly rebuild of that Page.
+license: MIT
+compatibility: Needs a Grok Bot with Pages and Python 3.9 or newer on its box, plus network access to raw.githubusercontent.com when the helper files are not next to this file. The optional app-state step needs the user's registered Mac with the Grok Bot app.
 ---
+
 # Grok Bot story
 
 You build one Page that walks the user through their own Grok Bot activity in up to 8 steps and ends on a poster they can save or copy. Every number comes from the user's own data on the box. You never invent, round up, estimate or compare.
 
-Helper files live in this skill's folder, `/home/box/agent-data/workflows/grok-bot-story/`. Run commands from there.
+Helper files live next to this file, in the same folder. Run commands from there, or from the working folder in step 0 if you had to download them.
 
-- `collect.py`: reads the box and writes one JSON file. Read-only, standard library only.
-- `collect_app_state.py`: optional helper that runs on the user's Mac to pick up bot names, avatars and connector logos.
-- `page-template.tsx`: the Page. Only its DATA block changes per user.
-- `data-contract.md`: what every field means and where it comes from.
-- `onboarding.md`: an example of the whole conversation.
+- [collect.py](collect.py): reads the box and writes one JSON file. Read-only, standard library only.
+- [collect_app_state.py](collect_app_state.py): optional helper that runs on the user's Mac to pick up bot names, avatars and connector logos.
+- [page-template.tsx](page-template.tsx): the Page. Only its DATA block changes per user.
+- [data-contract.md](data-contract.md): what every field means and where it comes from.
+- [onboarding.md](onboarding.md): an example of the whole conversation.
+
+## 0. Get the helper files
+
+If the helper files are not next to this file, which happens when the skill was installed from a bot template that only carries SKILL.md, download them into a working folder on the box and run every command from there:
+
+```
+mkdir -p /tmp/grok-bot-story && cd /tmp/grok-bot-story
+base=https://raw.githubusercontent.com/ericzakariasson/skills/main/skills/grok-bot-story
+curl -fsSL --remote-name-all "$base/collect.py" "$base/collect_app_state.py" "$base/page-template.tsx" "$base/data-contract.md" "$base/onboarding.md"
+```
 
 ## 1. Onboarding (in chat, one widget at most)
 
@@ -49,7 +56,7 @@ python3 collect.py --tz <IANA zone> --name "<Name>" --pages <n> \
 
 5. Read the JSON. Check `window`, `totals` and `sources`. If `totals.messages` is 0, stop and tell the user there isn't enough history on the box yet.
 6. Crew one-liners: the collector's `does` lines are rough fallbacks and are often empty. For each bot in `crew`, write a plain one-liner of at most 32 characters from that bot's description (what it does, not who it is, no names of people). Save them as `{"Bot name": "line"}` and pass `--does FILE` on the next run.
-7. Connector icons: `sources.connectorIconsFound` tells you how many connectors got a real icon. If the app-state folder has a plugin logo cache, you can run `collect.py --app-state DIR --dump-logos /tmp/story/logos` and open `contact-sheet.html` to match logos to connector names by eye, then pass them as `--icons FILE` (`{"Name": "/tmp/story/logos/logo-007.png"}`, absolute paths). Only map a logo you are sure of. A letter tile is better than a wrong logo.
+7. Connector icons: `sources.connectorIconsFound` tells you how many connectors got a real icon. If the app-state folder has a plugin logo cache, you can run `python3 collect.py --tz <IANA zone> --app-state DIR --dump-logos /tmp/story/logos` and open `contact-sheet.html` to match logos to connector names by eye, then pass them as `--icons FILE` (`{"Name": "/tmp/story/logos/logo-007.png"}`, absolute paths). Only map a logo you are sure of. A letter tile is better than a wrong logo.
 
 ## 3. Build the Page
 
@@ -91,7 +98,7 @@ The steps, in order. A step with no data is dropped, never shown empty:
 
 ## 5. After building
 
-Send the link with one or two short lines. Tell them to right-click the poster card on the last step to save it as an image or copy it. Then offer once: "Want me to rebuild this on the 1st of each month?" Create that routine only if they say yes, and only then; it reruns sections 2 to 3 with the same name, zone and exclusions and overwrites the same Page.
+Send the link with one or two short lines. Tell them to right-click the poster card on the last step to save it as an image or copy it. Then offer once: "Want me to rebuild this on the 1st of each month?" Create that routine only if they say yes, and only then; it reruns sections 0, 2 and 3 with the same name, zone and exclusions and overwrites the same Page.
 
 ## 6. Known limits
 
