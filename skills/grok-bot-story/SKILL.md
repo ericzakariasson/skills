@@ -79,7 +79,7 @@ The steps, in order. A step with no data is dropped, never shown empty:
 
 1. Meet <Name>: cover.
 2. The numbers: messages, bots, active days, streak, skills, Pages, routines.
-3. When <Name> works: hour of day chart with a time zone picker, best day, best weekday, best week, calendar.
+3. When <Name> works: hour of day chart, best day, best weekday, best week, calendar.
 4. The crew: top bots by messages, with their avatar shape and color.
 5. The toolkit: top connectors by tool calls.
 6. Beyond the chat: computer use sessions, browser pages, shell commands.

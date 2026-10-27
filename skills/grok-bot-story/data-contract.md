@@ -4,7 +4,7 @@ Every field comes from the user's own bot: the box, the user's Pages and memory,
 
 ## Time zone rule
 
-All hour, date, weekday, week, streak and window values are computed in the zone the user picked in onboarding (`--tz`, an IANA id), with real DST rules. Weeks start on Monday; "Week of Aug 24" means the week starting Monday Aug 24. Extra zones for the hour chart switcher come only from `--compare-zones`; the switcher is hidden when there is one zone.
+All hour, date, weekday, week, streak and window values are computed in the zone the user is in now (`--tz`, an IANA id: the device zone, or the one in memory), with real DST rules. Weeks start on Monday; "Week of Aug 24" means the week starting Monday Aug 24. This is the only zone: the JSON's `zone` holds its hour, day, weekday and week stats (null when there are no messages), and the Page shows no other zone.
 
 ## Box sources
 

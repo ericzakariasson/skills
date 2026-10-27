@@ -7,7 +7,7 @@ pasted as DATA at the top of page-template.tsx.
 
 Usage:
   python3 collect.py --tz America/New_York --name "Sam" --pages 12 \
-      [--app-state DIR] [--exclude-bots "Name,Other"] [--compare-zones "America/Los_Angeles=Pacific,UTC"] \
+      [--app-state DIR] [--exclude-bots "Name,Other"] \
       [--does FILE] [--published FILE] [--icons FILE] [--out data.json] [--tsx page-template.tsx --tsx-out page.tsx]
 """
 import argparse
@@ -163,12 +163,11 @@ def zone_stats(stamps, tzid, label, start, end):
     bw = max(range(7), key=lambda i: (wd[i], -i))
     wk = max(sorted(weeks), key=lambda k: weeks[k]) if weeks else start
     return {
-        "value": tzid, "label": label, "name": (label + " time") if label != "UTC" else "UTC",
+        "name": (label + " time") if label != "UTC" else "UTC",
         "hourly": hourly, "daily": daily, "peakHour": peak,
         "bestDay": {"label": fmt_day(days[bi]) if days else "", "count": daily[bi] if days else 0},
         "bestWeekday": {"label": WEEKDAYS[bw], "count": wd[bw]},
         "bestWeek": {"label": "Week of " + fmt_day(wk), "count": weeks.get(wk, 0)},
-        "byDay": by_day,
     }
 
 
@@ -301,7 +300,6 @@ def main():
     ap.add_argument("--pages", type=int, default=None, help="Pages count from ListCanvases")
     ap.add_argument("--app-state", default="", help="Folder written by collect_app_state.py")
     ap.add_argument("--exclude-bots", default="", help="Comma-separated bot names or ids to leave out")
-    ap.add_argument("--compare-zones", default="America/Los_Angeles=Pacific,America/New_York=Eastern,Europe/London=London,UTC=UTC", help="Extra zones for the hour chart switcher: tz[=Label],...")
     ap.add_argument("--does", default="", help="JSON file {botName: one-liner} to override crew descriptions")
     ap.add_argument("--published", default="", help="JSON file with published bots (see data-contract.md)")
     ap.add_argument("--icons", default="", help="JSON file {connectorName: dataUrl} to override icons")
@@ -352,21 +350,13 @@ def main():
     if stamps:
         dates = sorted({dt.datetime.fromtimestamp(t / 1000, tz).date() for t in stamps})
         start, end = dates[0], dates[-1]
-        zones = [zone_stats(stamps, a.tz, a.tz_label or zone_label(a.tz), start, end)]
-        for z in [z.strip() for z in a.compare_zones.split(",") if z.strip()]:
-            zid, _, lab = z.partition("=")
-            if zid == a.tz:
-                continue
-            zones.append(zone_stats(stamps, zid, lab or zone_label(zid), start, end))
-        for z in zones:
-            z.pop("byDay")
         out["window"] = {"start": start.isoformat(), "end": end.isoformat(), "days": (end - start).days + 1,
                          "label": window_label(start, end)}
-        out["zones"] = zones
+        out["zone"] = zone_stats(stamps, a.tz, a.tz_label or zone_label(a.tz), start, end)
         active, streak = len(dates), longest_streak(dates)
     else:
         out["window"] = None
-        out["zones"] = []
+        out["zone"] = None
         active = streak = 0
 
     # Connectors and work beyond the chat, from each kept bot's audit.jsonl.

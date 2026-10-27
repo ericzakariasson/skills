@@ -2,7 +2,6 @@ import {
   Page,
   Section,
   Button,
-  Segmented,
   Fragment,
   useGrokTheme,
   useState,
@@ -16,8 +15,6 @@ import {
 // (or run collect.py --tsx), then WriteCanvas the result. Nothing below DATA should need editing.
 
 type ZoneData = {
-  value: string;
-  label: string;
   name: string;
   hourly: number[];
   daily: number[];
@@ -35,7 +32,7 @@ type Data = {
   user: { name: string };
   timezone: { id: string; label: string };
   window: { start: string; end: string; days: number; label: string } | null;
-  zones: ZoneData[];
+  zone: ZoneData | null;
   totals: {
     messages: number;
     bots: number;
@@ -60,7 +57,7 @@ const DATA: Data = {
   user: { name: "You" },
   timezone: { id: "UTC", label: "UTC" },
   window: null,
-  zones: [],
+  zone: null,
   totals: { messages: 0, bots: 0, activeDays: 0, streak: 0, skills: 0, pages: null, routines: 0, connectors: 0 },
   crew: [],
   connectors: [],
@@ -75,7 +72,7 @@ const IS_YOU = NAME === "You";
 const TITLE = NAME + " on Grok Bot";
 const POSS = IS_YOU ? "Your" : NAME + "'s";
 const WINDOW = DATA.window ? DATA.window.label : "";
-const ZONES: ZoneData[] = DATA.zones ?? [];
+const ZONE: ZoneData | null = DATA.zone ?? null;
 const TOTAL_MSGS = num(T.messages);
 const plural = (n: number, one: string, many: string) => fmtInt(n) + " " + (n === 1 ? one : many);
 
@@ -156,7 +153,7 @@ type StepKey = "cover" | "numbers" | "when" | "crew" | "toolkit" | "beyond" | "s
 const STEPS: { key: StepKey; title: string }[] = [
   { key: "cover" as StepKey, title: IS_YOU ? "Meet you" : "Meet " + NAME, on: true },
   { key: "numbers" as StepKey, title: "The numbers", on: TOTAL_MSGS > 0 },
-  { key: "when" as StepKey, title: IS_YOU ? "When you work" : "When " + NAME + " works", on: TOTAL_MSGS > 0 && ZONES.length > 0 },
+  { key: "when" as StepKey, title: IS_YOU ? "When you work" : "When " + NAME + " works", on: TOTAL_MSGS > 0 && ZONE !== null },
   { key: "crew" as StepKey, title: "The crew", on: crew.length > 0 },
   { key: "toolkit" as StepKey, title: "The toolkit", on: connectors.length > 0 },
   { key: "beyond" as StepKey, title: "Beyond the chat", on: num(DATA.beyond?.computerUse) + num(DATA.beyond?.browserPages) + num(DATA.beyond?.shell) > 0 },
@@ -416,20 +413,12 @@ function PeakTile(props: { label: string; value: string; sub: string; i: number;
 
 function WhenWorks() {
   const theme = useGrokTheme();
-  const [zone, setZone] = useState<string>(ZONES[0]?.value ?? "");
   const t = useClock(2);
-  const z = ZONES.find((q: ZoneData) => q.value === zone) ?? ZONES[0];
+  const z = ZONE;
   if (!z) return null;
   return (
     <Fragment>
-      {ZONES.length > 1 ? (
-        <Segmented
-          options={ZONES.map((q: ZoneData) => ({ value: q.value, label: q.label }))}
-          value={z.value}
-          onChange={(v: string) => setZone(v)}
-        />
-      ) : null}
-      <HourChart key={z.value} zs={z} name={z.name} />
+      <HourChart zs={z} name={z.name} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
         <PeakTile i={0} t={t} label="Busiest day" value={z.bestDay.label} sub={plural(num(z.bestDay.count), "message", "messages")} />
         <PeakTile i={1} t={t} label="Busiest weekday" value={z.bestWeekday.label} sub={plural(num(z.bestWeekday.count), "message", "messages")} />
@@ -1086,7 +1075,7 @@ function Timeline() {
 }
 
 // Messages sent per day in the user's timezone, first to last active day. Same store.db entries as the hourly counts.
-const daily: number[] = ZONES[0]?.daily ?? [];
+const daily: number[] = ZONE?.daily ?? [];
 const CARD = 1080;
 
 // 0 = no messages, 1 = 1 to 9, 2 = 10 to 29, 3 = 30 to 49, 4 = 50 or more.
