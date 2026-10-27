@@ -97,7 +97,7 @@ The steps, in order. A step with no data is dropped, never shown empty:
 
 ## 5. After building
 
-Send the link with one or two short lines. Tell them to right-click the poster card on the last step to save it as an image or copy it. Then offer once: "Want me to rebuild this on the 1st of each month?" Create that routine only if they say yes, and only then; it reruns sections 0, 2 and 3 with the same name, zone and exclusions and overwrites the same Page.
+Send the link with one or two short lines. Tell them to right-click the poster card on the last step to save it as an image or copy it. Then offer once: "Want me to rebuild this on the 1st of each month?" Create that routine only if they say yes, and only then; it reruns sections 0, 2 and 3 with the same name and exclusions, in the zone the user is in at that time, and overwrites the same Page.
 
 ## 6. Known limits
 
