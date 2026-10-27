@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect a Grok Bot user's own activity from the box into one JSON file.
+r"""Collect a Grok Bot user's own activity from the box into one JSON file.
 
 Standard library only. Read-only: opens every store.db with mode=ro and never
 touches secrets, cookies or tokens. The JSON matches data-contract.md and is
