@@ -62,6 +62,12 @@ def read_json(path, default=None):
         return default
 
 
+def open_out(path):
+    """Open an output file for writing, creating its folder first if it doesn't exist yet."""
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    return open(path, "w", encoding="utf-8")
+
+
 def agent_dirs():
     return sorted(d for d in glob.glob(os.path.join(AGENT_DATA, "agents", "*")) if os.path.isdir(d))
 
@@ -438,7 +444,7 @@ def main():
     if a.out == "-":
         sys.stdout.write(text + "\n")
     else:
-        with open(a.out, "w", encoding="utf-8") as fh:
+        with open_out(a.out) as fh:
             fh.write(text + "\n")
     if a.tsx:
         src = open(a.tsx, encoding="utf-8").read()
@@ -446,7 +452,7 @@ def main():
         if not pat.search(src):
             sys.exit("template has no // DATA:BEGIN ... // DATA:END block")
         src = pat.sub(lambda m: m.group(1) + "const DATA: Data = " + json.dumps(out, ensure_ascii=False) + ";" + m.group(2), src)
-        with open(a.tsx_out or "page.tsx", "w", encoding="utf-8") as fh:
+        with open_out(a.tsx_out or "page.tsx") as fh:
             fh.write(src)
 
 
