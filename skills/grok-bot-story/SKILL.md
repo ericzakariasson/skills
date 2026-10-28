@@ -1,20 +1,20 @@
 ---
 name: grok-bot-story
-description: Builds the user a personal "<Name> on Grok Bot" story Page from their own Grok Bot activity (messages, bots, hours, streaks, connectors, routines, shipped bots) with a shareable poster at the end. Use when the user asks for their Grok Bot story, recap, year in review, wrapped, stats about how they use Grok Bot, or a card they can share about their bots. Also use when a routine asks for a monthly rebuild of that Page.
+description: Builds the user a personal "<Name> on Grok Bot" story Page from their own Grok Bot activity (messages, bots, hours, crew, connectors, work beyond the chat, an archetype, shipped bots) ending on a share card they can save or copy. Use when the user asks for their Grok Bot story, recap, year in review, wrapped, stats about how they use Grok Bot, their Grok Bot archetype, or a card they can share about their bots. Also use when a routine asks for the monthly rebuild of that Page.
 license: MIT
-compatibility: Needs a Grok Bot with Pages and Python 3.9 or newer on its box, plus network access to raw.githubusercontent.com when the helper files are not next to this file. The optional app-state step needs the user's registered Mac with the Grok Bot app.
+compatibility: Needs a Grok Bot with Pages and Python 3.9 or newer on its box, plus network access to raw.githubusercontent.com when the helper files are not next to this file. Pillow is used for logos when present. The optional app-state step needs the user's registered Mac with the Grok Bot app.
 ---
 
 # Grok Bot story
 
-You build one Page that walks the user through their own Grok Bot activity in up to 8 steps and ends on a poster they can save or copy. Every number comes from the user's own data on the box. You never invent, round up, estimate or compare.
+You build one Page that walks the user through their own Grok Bot activity in up to 8 steps and ends on a share card they can save or copy. Every number comes from the user's own data on the box. You never invent, round up, estimate or compare. The only words you write yourself are the crew one-liners (section 2, step 6).
 
 Helper files live next to this file, in the same folder. Run commands from there, or from the working folder in step 0 if you had to download them.
 
-- [collect.py](collect.py): reads the box and writes one JSON file. Read-only, standard library only.
+- [collect.py](collect.py): reads the box and writes one JSON file, and fills the Page template. Read-only, standard library only (Pillow optional).
 - [collect_app_state.py](collect_app_state.py): optional helper that runs on the user's Mac to pick up bot names, avatars and connector logos.
-- [page-template.tsx](page-template.tsx): the Page. Only its DATA block changes per user.
-- [data-contract.md](data-contract.md): what every field means and where it comes from.
+- [page-template.tsx](page-template.tsx): the Page. Only its DATA block changes per user; the shipped DATA block is empty.
+- [data-contract.md](data-contract.md): what every field means, where it comes from, and the archetype rules.
 - [onboarding.md](onboarding.md): an example of the whole conversation.
 
 ## 0. Get the helper files
@@ -34,56 +34,60 @@ Open with one short line, then ask a single short question widget with these two
 1. **Name on the Page.** Default to the name from their profile or memory. Free text.
 2. **Bots to leave out.** Multi-select of the user's bots by name, nothing selected by default. Use this for test bots or bots they don't want on a public card.
 
-Don't ask anything else. For the time zone, use the zone the user is in now: the device zone, or the one in memory. Don't ask about it or offer a list. If the user skips the widget, use the defaults.
+Don't ask anything else. For the time zone, use the zone the user is in now: the device zone, or the one in memory. Don't ask about it or offer a list; the Page shows that one zone only. If the user skips the widget, use the defaults.
 
 Before you build, say the date range you found in one line, for example "I found activity from Jul 29 to Sep 9, 2026, so the Page covers those 43 days." If the range is short, say so plainly.
 
 ## 2. Gather
 
-Run everything on the box unless noted.
+Run everything on the box unless noted. Work in `/tmp/story`.
 
-1. Pages count: call ListCanvases and count the user's Pages. Pass it as `--pages`. If the call fails, leave it out; the stat is dropped.
-2. Shipped bots (optional): look for bots the user published, using RecallMemory and SearchTranscripts for `x.ai/bot/` links. Write what you find to a JSON file: `[{"name", "tag", "url", "date", "shape", "color"}]`, where `tag` is a 2 to 4 word role, `date` is like "Sep 2" and `shape`/`color` come from that bot's profile if it is one of theirs. If you find none, skip the file and the step is dropped. Never guess a published bot.
-3. App state (optional, Mac only): if the user has a registered Mac and agrees, run `collect_app_state.py` there with Shell and machineId. First run it with no flags; it only lists what it would read. Show the user that list and ask before running it again with `--write`. Then CopyToBox the folder `~/Downloads/grok-bot-story-app-state` and pass it as `--app-state`. It never reads `sand-secrets.json`, cookies, tokens or anything credential-like, and it only writes to that one folder. Without it the Page still works; bot names come from the box and connector icons fall back to letters.
-4. Run the collector:
+1. Pages count: call ListCanvases and count the user's Pages. Pass it as `--pages`. ListCanvases returns at most 50, so if you get 50, leave `--pages` out rather than show a capped number. If the call fails, leave it out; the stat is dropped.
+2. Shipped bots (optional): look for bots the user published, using RecallMemory and SearchTranscripts for `x.ai/bot/` links. Write what you find to a JSON file: `[{"name", "tag", "url", "date", "shape", "color"}]`, where `tag` is a 2 to 6 word line on what it does (or ""), `date` is like "Sep 2, 2026" and `shape`/`color` come from that bot's profile if it is one of theirs. If you find none, skip the file and the "Bots <Name> shipped" step is dropped. Never guess a published bot.
+3. App state (optional, Mac only): if the user has a registered Mac and agrees, run `collect_app_state.py` there with Shell and machineId. First run it with no flags; it only lists what it would read. Show the user that list and ask before running it again with `--write`. Then CopyToBox the folder `~/Downloads/grok-bot-story-app-state` and pass it as `--app-state`. It never reads `sand-secrets.json`, cookies, tokens or anything credential-like, and it only writes to that one folder. Without it the Page still works; bot names come from the box and connector logos come from step 7.
+4. Run the collector. Pass `--tz-label` as the friendly zone name the user would say (for example "Pacific", "Eastern", "London"):
 
 ```
-python3 collect.py --tz <IANA zone> --name "<Name>" --pages <n> \
+python3 collect.py --tz <IANA zone> --tz-label "<Zone name>" --name "<Name>" --pages <n> \
   [--exclude-bots "Bot A,Bot B"] [--app-state DIR] [--published FILE] \
   --out /tmp/story/data.json
 ```
 
-5. Read the JSON. Check `window`, `totals` and `sources`. If `totals.messages` is 0, stop and tell the user there isn't enough history on the box yet.
-6. Crew one-liners: the collector's `does` lines are rough fallbacks and are often empty. For each bot in `crew`, write a plain one-liner of at most 32 characters from that bot's description (what it does, not who it is, no names of people). Save them as `{"Bot name": "line"}` and pass `--does FILE` on the next run.
-7. Connector icons: `sources.connectorIconsFound` tells you how many connectors got a real icon. If the app-state folder has a plugin logo cache, you can run `python3 collect.py --tz <IANA zone> --app-state DIR --dump-logos /tmp/story/logos` and open `contact-sheet.html` to match logos to connector names by eye, then pass them as `--icons FILE` (`{"Name": "/tmp/story/logos/logo-007.png"}`, absolute paths). Only map a logo you are sure of. A letter tile is better than a wrong logo.
+5. Read the JSON. Check `window`, `totals`, `funDay`, `archetype` and `sources`. If `totals.messages` is 0, stop and tell the user there isn't enough history on the box yet.
+6. Crew one-liners (you write these): the collector's `does` lines are rough fallbacks and are often empty. For each bot in `crew`, read its entry in `notes.crew` (description, `actions`, `topTools`, `routines`, computer use, browser pages, tasks) and write one plain line of at most 32 characters about what that bot actually did for the user. Prefer a concrete, countable action from `actions` or `routines` ("Drafted 26 posts for X", "Put 6 events on your calendar", "Clears inbox noise at 6am"). Use only numbers that are in `notes.crew`, never round or guess. If nothing concrete stands out, describe its job in plain words. No names of people, no emails, no channel or document names, no private details from a description, no em dashes. Save them as `{"Bot name": "line"}` in `/tmp/story/does.json` and pass `--does /tmp/story/does.json` on the build run. `notes` and `archetype` are never put on the Page.
+7. Sharp connector logos: the toolkit draws each logo at 24 px, so every logo must be at least 48 px and ideally 72 px or larger square, or the Page looks blurry. `sources.connectorIconsFound` counts connectors that got a logo and `sources.lowResIcons` names any that came from a source under 48 px. Sources, best first:
+   - The app's plugin logo cache in the app-state folder (usually 96 to 112 px). Run `python3 collect.py --tz <IANA zone> --app-state DIR --dump-logos /tmp/story/logos`, open `contact-sheet.html`, and match logos to connector names by eye.
+   - The service's own public site: its `apple-touch-icon` (180 px) or a large PNG or SVG favicon, downloaded with curl into `/tmp/story/logos`. Use the brand's own mark, not a screenshot, a wordmark or a third-party icon pack.
+   - Otherwise leave it out; the Page shows a letter tile. Never upscale a 16 or 32 px favicon, and never map a logo you are not sure of. A letter tile is better than a blurry or wrong logo.
+   Pass the result as `--icons /tmp/story/icons.json` (`{"Connector name": "/tmp/story/logos/slack.png"}`, absolute paths or data URLs). collect.py fits each logo in 72 px without ever upscaling.
 
 ## 3. Build the Page
 
 Fill the template and write it:
 
 ```
-python3 collect.py <same flags> --does FILE [--icons FILE] \
+python3 collect.py <same flags> --does /tmp/story/does.json [--icons /tmp/story/icons.json] \
   --tsx page-template.tsx --tsx-out /tmp/story/page.tsx
 ```
 
-Load the canvas skill first. Then read `/tmp/story/page.tsx` and pass it to WriteCanvas as a new Page titled "<Name> on Grok Bot". Don't edit anything below the DATA block. If you must change the template, keep these rules:
+Load the canvas skill first. Then read `/tmp/story/page.tsx` and pass it to WriteCanvas as a new Page titled "<Name> on Grok Bot". On a rebuild, pass the `canvas_id` of the existing Page instead, so the same Page is overwritten (section 5). Don't edit anything below the DATA block. If you must change the template, keep these rules:
 
 - Import only from `grok/canvas`.
-- No literal colors anywhere except inside `data:image` URLs. Use theme tokens.
+- No literal colors anywhere except inside `data:image` URLs. Use `useGrokTheme()` tokens, so the whole Page follows the viewer's light or dark mode.
 - No `for` loops. Use map, filter and reduce.
-- Light mode, `width="column"`.
-- No summary block and no per-step captions or explainer text.
+- `width="column"`, and the same column width on every step.
+- No summary paragraph under the title, no per-step captions or explainer text, no Share on X button and no time zone picker.
 
 The steps, in order. A step with no data is dropped, never shown empty:
 
-1. Meet <Name>: cover.
-2. The numbers: messages, bots, active days, streak, skills, Pages, routines.
-3. When <Name> works: hour of day chart, best day, best weekday, best week, calendar.
-4. The crew: top bots by messages, with their avatar shape and color.
-5. The toolkit: top connectors by tool calls.
-6. Beyond the chat: computer use sessions, browser pages, shell commands.
-7. Bots <Name> shipped: published bots, only if found.
-8. Share your story: the poster.
+1. Meet <Name>: cover with the Grok Bot avatar, the crew orbiting it, and messages, bots, active days and day streak.
+2. When <Name> works: hour of day chart, peak hour, busiest weekday, busiest week, and the fun fact (the biggest day and the bots that got most of it).
+3. The crew: the top bots by messages, drawn as their avatar shape and color, each with your one-liner.
+4. The toolkit: connectors ranked by use with sharp logos and counts, top 10 shown, then "+N more".
+5. Beyond the chat: times a bot used its own computer, web pages its browser read, and tasks it ran on its own computer.
+6. Your archetype: a short build-up of the user's biggest counts, then the reveal of their archetype and its drawn bot, plus a secondary archetype when one also matches (rules in data-contract.md).
+7. Bots <Name> shipped: published bots with an Install link. Rendered only when published bots exist.
+8. Share your story: a theme-aware share card with the archetype bot, up to 4 stats (bots, connectors, routines, day streak), the Grok Bot wordmark, and a "Right click on the card to download & copy" chip. An invisible PNG of the card in the current theme lies over it, so right-click saves or copies exactly what the viewer sees.
 
 ## 4. Data rules
 
@@ -91,13 +95,13 @@ The steps, in order. A step with no data is dropped, never shown empty:
 - No made-up or estimated numbers. If a value is missing, drop it or drop the step.
 - No rank, percentile, "top X% of users", total user counts or token counts.
 - The date range on the Page is the range the data actually covers. Never call it a year, a lifetime or "all time" unless it is.
-- Routines count enabled ones; set-up count is kept in the JSON but not shown by default.
+- Routines count enabled ones; the set-up count is kept in the JSON but not shown.
 - Bots with no avatar shape or color show as a gray blob.
 - Don't put names of other people, emails, or private bot descriptions on the Page. Bot names are fine; the user can exclude any in onboarding.
 
 ## 5. After building
 
-Send the link with one or two short lines. Tell them to right-click the poster card on the last step to save it as an image or copy it. Then offer once: "Want me to rebuild this on the 1st of each month?" Create that routine only if they say yes, and only then; it reruns sections 0, 2 and 3 with the same name and exclusions, in the zone the user is in at that time, and overwrites the same Page.
+Send the link with one or two short lines and name their archetype. Tell them to right-click the card on the last step to save it as an image or copy it. Then offer once: "Want me to rebuild this on the 1st of each month?" Create that routine only if they say yes, and only then. Save the Page's `canvas_id` in the routine. Each run reruns sections 0, 2 and 3 with the same name and exclusions, in the zone the user is in at that time, rewrites the crew one-liners from that run's `notes`, and overwrites the same Page with WriteCanvas and that `canvas_id`. It never creates a second Page. If the Page was deleted, create a new one and save its new id.
 
 ## 6. Known limits
 
@@ -106,4 +110,4 @@ Say these only if they matter for the user's result:
 - The box keeps a limited stretch of history, so the Page often covers weeks or a few months, not a full year. A full year needs product support (a stats API).
 - Published bots come from memory and chat links; there is no list of them yet.
 - Avatar photos aren't shown; bots appear as their shape and color.
-- Some connector icons show as letters when no logo can be matched.
+- Some connector logos show as letters when no sharp logo can be found.

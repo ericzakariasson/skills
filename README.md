@@ -26,7 +26,7 @@ npx skills add ericzakariasson/skills --list
 
 - `game-builder`: builds playable homage games through a planner, builder, and critic loop that repeats until in-game captures hold up next to real shipped-game screenshots.
 - `game-builder-blender-assets`: companion for 3D games that authors hero characters and other camera-critical meshes in Blender and exports GLB, one asset per specialist subagent.
-- `grok-bot-story`: lets any Grok Bot build its user a personal story Page from their own activity data, an 8-step walkthrough that ends with a shareable poster card.
+- `grok-bot-story`: lets any Grok Bot build its user a personal story Page from their own activity data, an 8-step walkthrough that ends with a share card they can save or copy.
 
 ## License
 

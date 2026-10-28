@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 r"""Collect a Grok Bot user's own activity from the box into one JSON file.
 
-Standard library only. Read-only: opens every store.db with mode=ro and never
-touches secrets, cookies or tokens. The JSON matches data-contract.md and is
-pasted as DATA at the top of page-template.tsx.
+Standard library only (Pillow is used for icons when present). Read-only: opens
+every store.db with mode=ro and never touches secrets, cookies or tokens. The
+JSON matches data-contract.md. With --tsx it also fills the DATA block of
+page-template.tsx. The "notes" and "archetype" keys are for the bot only (to
+write crew one-liners and to talk about the result) and are never put on the Page.
 
 Usage:
-  python3 collect.py --tz America/New_York --name "Sam" --pages 12 \
+  python3 collect.py --tz America/New_York --tz-label Eastern --name "Sam" --pages 12 \
       [--app-state DIR] [--exclude-bots "Name,Other"] \
       [--does FILE] [--published FILE] [--icons FILE] [--out data.json] [--tsx page-template.tsx --tsx-out page.tsx]
 """
@@ -218,8 +220,33 @@ def find_icon(key, name, app):
     return ""
 
 
-def shrink_icon(url, px=24):
-    """Make an icon small enough to paste inline: 24px palette PNG. Needs Pillow; without it the icon is kept as is."""
+ICON_PX = 72      # The Page draws logos at 24 CSS px; 72 px keeps them sharp on 3x screens.
+ICON_MIN_PX = 48  # Smaller sources look blurry once scaled up. They are listed in sources.lowResIcons.
+
+
+def icon_size(url):
+    """Pixel size (w, h) of a data URL image, or None if unknown. PNG is read from its header; others need Pillow."""
+    try:
+        raw = base64.b64decode(url.split(",", 1)[1])
+    except Exception:
+        return None
+    if raw[:8] == b"\x89PNG\r\n\x1a\n" and len(raw) >= 24:
+        return int.from_bytes(raw[16:20], "big"), int.from_bytes(raw[20:24], "big")
+    if url.startswith("data:image/svg"):
+        return (ICON_PX, ICON_PX)  # vector, always sharp
+    try:
+        import io
+        from PIL import Image
+        return Image.open(io.BytesIO(raw)).size
+    except Exception:
+        return None
+
+
+def shrink_icon(url, px=ICON_PX):
+    """Fit an icon in px by px as a PNG, never upscaling, so it stays sharp and small enough to paste inline.
+    SVG is kept as is. Needs Pillow; without it the icon is kept as is."""
+    if url.startswith("data:image/svg"):
+        return url
     try:
         import io
         from PIL import Image
@@ -228,11 +255,12 @@ def shrink_icon(url, px=24):
     try:
         raw = base64.b64decode(url.split(",", 1)[1])
         im = Image.open(io.BytesIO(raw)).convert("RGBA")
-        im.thumbnail((px, px), Image.LANCZOS)
+        if max(im.size) > px:
+            im.thumbnail((px, px), Image.LANCZOS)
         buf = io.BytesIO()
-        im.quantize(colors=64, method=Image.FASTOCTREE).save(buf, "PNG", optimize=True)
-        small = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
-        return small if len(small) < len(url) else url
+        im.save(buf, "PNG", optimize=True)
+        out = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+        return out if len(out) < len(url) else url
     except Exception:
         return url
 
@@ -292,6 +320,36 @@ def short_does(text, bot_name, limit=34):
     return s
 
 
+ACTION_RE = re.compile(r"create|send|post|draft|update|add|schedule|publish|reply|book|write|insert|append|"
+                       r"label|archive|move|upload|comment|invite", re.I)
+
+# Keys in the JSON that are for the bot only and never go on the Page.
+BOT_ONLY = ("notes", "archetype")
+
+
+def archetype_preview(d):
+    """Same rules as archetype() in page-template.tsx, so the bot can name the result in chat.
+    The Page computes its own; this copy is never embedded."""
+    t = d.get("totals") or {}
+    msgs, bots = t.get("messages") or 0, t.get("bots") or 0
+    routines, conns = t.get("routines") or 0, t.get("connectors") or 0
+    hourly = (d.get("zone") or {}).get("hourly") or [0] * 24
+    night = sum(hourly[h] for h in (22, 23, 0, 1, 2, 3)) / msgs if msgs else 0
+    morning = sum(hourly[h] for h in (5, 6, 7, 8)) / msgs if msgs else 0
+    per_bot = msgs / bots if bots else 0
+    rules = [
+        ("Bot Factory", bots / 8),
+        ("Bot Artisan", per_bot / 50 if 1 <= bots <= 4 else 0),
+        ("Night Owl", night / 0.3),
+        ("Early Bird", morning / 0.3),
+        ("Autopilot", min(routines / 5, routines / bots / 0.5) if bots else 0),
+        ("Connector Collector", conns / 12),
+    ]
+    hits = sorted([(s, i, n) for i, (n, s) in enumerate(rules) if s >= 1], key=lambda x: (-x[0], x[1]))
+    return {"primary": hits[0][2] if hits else "Bot Explorer", "secondary": hits[1][2] if len(hits) > 1 else None,
+            "scores": {n: round(s, 2) for n, s in rules}}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--tz", required=True, help="IANA timezone for every hour, day and streak stat")
@@ -334,7 +392,9 @@ def main():
         }
     kept = {k: v for k, v in bots.items() if not v["excluded"]}
 
+    tz = ZoneInfo(a.tz)
     per_bot = Counter()
+    bot_days = defaultdict(Counter)  # bid -> {local date: messages}
     stamps = []
     for bid, b in kept.items():
         db = os.path.join(b["dir"], "store.db")
@@ -342,9 +402,9 @@ def main():
             for ts in user_messages(db):
                 per_bot[bid] += 1
                 stamps.append(ts)
+                bot_days[bid][dt.datetime.fromtimestamp(ts / 1000, tz).date()] += 1
 
-    tz = ZoneInfo(a.tz)
-    out = {"version": 1, "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+    out = {"version": 2, "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
            "user": {"name": a.name or "You"},
            "timezone": {"id": a.tz, "label": a.tz_label or zone_label(a.tz)}}
     if stamps:
@@ -354,14 +414,26 @@ def main():
                          "label": window_label(start, end)}
         out["zone"] = zone_stats(stamps, a.tz, a.tz_label or zone_label(a.tz), start, end)
         active, streak = len(dates), longest_streak(dates)
+        # Fun fact: the busiest local day (earliest on a tie) and the two bots that got most of its messages.
+        day_tot = Counter()
+        for bid in bot_days:
+            day_tot.update(bot_days[bid])
+        big = max(sorted(day_tot), key=lambda d: day_tot[d])
+        on_day = sorted(((bot_days[bid][big], kept[bid]["name"]) for bid in bot_days if bot_days[bid][big] > 0),
+                        key=lambda x: (-x[0], x[1]))
+        out["funDay"] = {"label": WEEKDAYS[big.weekday()] + ", " + fmt_day(big), "count": day_tot[big],
+                         "bots": [{"name": nm, "count": n} for n, nm in on_day[:2]]}
     else:
         out["window"] = None
         out["zone"] = None
+        out["funDay"] = None
         active = streak = 0
 
     # Connectors and work beyond the chat, from each kept bot's audit.jsonl.
     calls = Counter()
     beyond = Counter()
+    bot_tools = defaultdict(Counter)   # bid -> {(connector, tool): ok calls}, for the crew notes only
+    bot_beyond = defaultdict(Counter)  # bid -> {event type: count}
     for bid, b in kept.items():
         p = os.path.join(b["dir"], "audit.jsonl")
         if not os.path.exists(p):
@@ -376,34 +448,64 @@ def main():
                     continue
                 ty = e.get("type")
                 if ty == "mcp_tool_call":
-                    k = connector_service(e.get("serverIdentifier"))
+                    ident = e.get("serverIdentifier")
+                    k = connector_service(ident)
                     if k:
                         calls[k] += 1
+                        if e.get("status") in (None, "ok"):
+                            tool = str(e.get("toolName") or "")
+                            if isinstance(ident, str) and tool.startswith(ident + "-"):
+                                tool = tool[len(ident) + 1:]
+                            bot_tools[bid][(display_name(k), tool[:60])] += 1
                 elif ty in ("computer_use_session", "browser_navigation", "shell_command"):
                     beyond[ty] += 1
+                    bot_beyond[bid][ty] += 1
 
     icon_over = read_json(a.icons, {}) if a.icons else {}
     conns = []
+    low_res = []
     for k, v in calls.most_common(a.connectors):
         nm = display_name(k)
         icon = icon_value(icon_over.get(nm)) or find_icon(k, nm, app)
-        icon = shrink_icon(icon) if icon else ""
+        if icon:
+            sz = icon_size(icon)
+            if sz and min(sz) < ICON_MIN_PX:
+                low_res.append(nm)
+            icon = shrink_icon(icon)
         conns.append({"name": nm, "icon": icon, "mono": mono(nm), "value": v})
 
     # Routines: enabled automation.json files under kept bots. Paused ones are reported separately.
     r_on = r_all = 0
+    bot_routines = defaultdict(list)  # bid -> enabled routines, for the crew notes only
     for bid, b in kept.items():
         for p in glob.glob(os.path.join(b["dir"], "automations", "*", "automation.json")):
             j = read_json(p, {}) or {}
             r_all += 1
-            r_on += 1 if j.get("enabled") is True else 0
+            if j.get("enabled") is True:
+                r_on += 1
+                bot_routines[bid].append({"name": str(j.get("name") or "")[:80], "schedule": str(j.get("schedule") or "")[:40]})
 
     skills = len([d for d in glob.glob(os.path.join(AGENT_DATA, "workflows", "*")) if os.path.isfile(os.path.join(d, "SKILL.md"))])
 
     does = read_json(a.does, {}) if a.does else {}
     crew = []
+    notes = []
     for bid, n in per_bot.most_common(a.crew):
         b = kept[bid]
+        days = sorted(bot_days[bid])
+        notes.append({
+            "name": b["name"], "msgs": n, "activeDays": len(days),
+            "first": days[0].isoformat() if days else None, "last": days[-1].isoformat() if days else None,
+            "description": re.sub(r"\s+", " ", b["description"] or "").strip()[:300],
+            "topTools": [{"connector": c, "tool": t, "calls": v} for (c, t), v in bot_tools[bid].most_common(8)],
+            # Tools that made or changed something (drafts, sends, events, updates): the best raw material for a one-liner.
+            "actions": [{"connector": c, "tool": t, "calls": v} for (c, t), v in bot_tools[bid].most_common()
+                        if ACTION_RE.search(t)][:8],
+            "routines": bot_routines[bid][:8],
+            "computerUse": bot_beyond[bid]["computer_use_session"],
+            "browserPages": bot_beyond[bid]["browser_navigation"],
+            "tasks": bot_beyond[bid]["shell_command"],
+        })
         crew.append({
             "key": "b" + str(len(crew)), "name": b["name"],
             "does": does.get(b["name"]) or short_does(b["description"], b["name"]),
@@ -412,7 +514,15 @@ def main():
             "color": b["color"] if b["color"] in KNOWN_COLORS else "gray",
         })
 
-    published = read_json(a.published, []) if a.published else []
+    # Published bots: exactly the fields the Page type allows, and only ones with a link.
+    published = []
+    for p in (read_json(a.published, []) if a.published else []) or []:
+        if not isinstance(p, dict) or not p.get("name") or not str(p.get("url", "")).startswith("https://"):
+            continue
+        shp, col = str(p.get("shape") or "").lower(), str(p.get("color") or "").lower()
+        published.append({"name": str(p["name"]), "tag": str(p.get("tag") or ""), "url": str(p["url"]),
+                          "date": str(p.get("date") or ""), "shape": shp if shp in KNOWN_SHAPES else "blob",
+                          "color": col if col in KNOWN_COLORS else "gray"})
     out["totals"] = {
         "messages": len(stamps), "bots": len(per_bot), "activeDays": active, "streak": streak,
         "skills": skills, "pages": a.pages, "routines": r_on, "routinesSetUp": r_all,
@@ -420,13 +530,17 @@ def main():
     }
     out["crew"] = crew
     out["connectors"] = conns
+    # "tasks" is the count of shell commands the bots ran on their own computers.
     out["beyond"] = {"computerUse": beyond["computer_use_session"], "browserPages": beyond["browser_navigation"],
-                     "shell": beyond["shell_command"]}
-    out["published"] = published or []
+                     "tasks": beyond["shell_command"]}
+    out["published"] = published
+    out["archetype"] = archetype_preview(out)
+    out["notes"] = {"crew": notes}
     out["sources"] = {
         "botsOnBox": len(bots), "botsExcluded": sorted(b["name"] for b in bots.values() if b["excluded"]),
         "namesFromAppRoster": sum(1 for k in kept if k in app["bots"]),
         "connectorIconsFound": sum(1 for c in conns if c["icon"]),
+        "lowResIcons": low_res,
         "appState": bool(a.app_state),
     }
 
@@ -441,7 +555,8 @@ def main():
         pat = re.compile(r"(// DATA:BEGIN\n).*?(\n// DATA:END)", re.S)
         if not pat.search(src):
             sys.exit("template has no // DATA:BEGIN ... // DATA:END block")
-        src = pat.sub(lambda m: m.group(1) + "const DATA: Data = " + json.dumps(out, ensure_ascii=False) + ";" + m.group(2), src)
+        page = {k: v for k, v in out.items() if k not in BOT_ONLY}
+        src = pat.sub(lambda m: m.group(1) + "const DATA: Data = " + json.dumps(page, ensure_ascii=False) + ";" + m.group(2), src)
         with open_out(a.tsx_out or "page.tsx") as fh:
             fh.write(src)
 
