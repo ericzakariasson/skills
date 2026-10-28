@@ -11,6 +11,11 @@ Usage:
   python3 collect.py --tz America/New_York --tz-label Eastern --name "Sam" --pages 12 \
       [--app-state DIR] [--exclude-bots "Name,Other"] \
       [--does FILE] [--published FILE] [--icons FILE] [--out data.json] [--tsx page-template.tsx --tsx-out page.tsx]
+      [--assets-dir /workspace/grok-bot-story/assets]
+
+With --tsx, connector logos are written as PNG files to --assets-dir (72 px max, at most 20) and the Page
+refers to them as asset:<slug>.png. A JSON manifest {assetName: filePath} is written to <assets-dir>/manifest.json
+and printed on stdout (stderr when --out is -). Upload each entry with WriteCanvasAsset after WriteCanvas.
 """
 import argparse
 import base64
@@ -221,6 +226,7 @@ def find_icon(key, name, app):
 
 
 ICON_PX = 72      # The Page draws logos at 24 CSS px; 72 px keeps them sharp on 3x screens.
+MAX_ASSETS = 20   # Page asset limit. Logos past this fall back to letter tiles.
 ICON_MIN_PX = 48  # Smaller sources look blurry once scaled up. They are listed in sources.lowResIcons.
 
 
@@ -263,6 +269,60 @@ def shrink_icon(url, px=ICON_PX):
         return out if len(out) < len(url) else url
     except Exception:
         return url
+
+
+def slug(name):
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "logo"
+
+
+def write_assets(conns, dest):
+    """Write each connector logo to dest as a PNG fit in ICON_PX and point its icon at asset:<file>. Page assets
+    must be PNG, JPEG, WebP or GIF under /workspace, /home or /root, so SVG logos stay inline data URLs.
+    At most MAX_ASSETS files; the rest get no icon, so the Page draws the letter tile."""
+    manifest = {}
+    os.makedirs(dest, exist_ok=True)
+    for c in conns:
+        url = c.get("icon") or ""
+        if url.startswith("data:image/svg"):
+            continue
+        if not url.startswith("data:image/") or len(manifest) >= MAX_ASSETS:
+            c["icon"] = ""
+            continue
+        base = slug(c["name"])
+        while base + ".png" in manifest:
+            base += "-2"
+        name = base + ".png"
+        try:
+            raw = base64.b64decode(shrink_icon(url).split(",", 1)[1])
+            import io
+            from PIL import Image
+            im = Image.open(io.BytesIO(raw))
+            if not raw.startswith(b"\x89PNG") or max(im.size) > ICON_PX:
+                im = im.convert("RGBA")
+                im.thumbnail((ICON_PX, ICON_PX), Image.LANCZOS)
+                buf = io.BytesIO()
+                im.save(buf, "PNG", optimize=True)
+                raw = buf.getvalue()
+        except Exception:
+            c["icon"] = ""
+            continue
+        path = os.path.abspath(os.path.join(dest, name))
+        with open(path, "wb") as fh:
+            fh.write(raw)
+        manifest[name] = path
+        c["icon"] = "asset:" + name
+    return manifest
+
+
+def compact(src):
+    """Drop indentation and whole-line comments (keeping the DATA markers) so the filled Page stays small."""
+    out = []
+    for line in src.split("\n"):
+        t = line.strip()
+        if not t or (t.startswith("//") and "DATA:" not in t):
+            continue
+        out.append(t)
+    return "\n".join(out) + "\n"
 
 
 def icon_value(v):
@@ -367,6 +427,7 @@ def main():
     ap.add_argument("--out", default="-")
     ap.add_argument("--tsx", default="", help="Template to fill: replaces the DATA block between the markers")
     ap.add_argument("--tsx-out", default="")
+    ap.add_argument("--assets-dir", default="/workspace/grok-bot-story/assets", help="Where --tsx writes logo PNGs for WriteCanvasAsset")
     a = ap.parse_args()
 
     ZoneInfo(a.tz)  # fail fast on a bad zone
@@ -556,9 +617,14 @@ def main():
         if not pat.search(src):
             sys.exit("template has no // DATA:BEGIN ... // DATA:END block")
         page = {k: v for k, v in out.items() if k not in BOT_ONLY}
+        page["connectors"] = [dict(c) for c in page.get("connectors", [])]
+        manifest = write_assets(page["connectors"], a.assets_dir)
         src = pat.sub(lambda m: m.group(1) + "const DATA: Data = " + json.dumps(page, ensure_ascii=False) + ";" + m.group(2), src)
         with open_out(a.tsx_out or "page.tsx") as fh:
-            fh.write(src)
+            fh.write(compact(src))
+        with open_out(os.path.join(a.assets_dir, "manifest.json")) as fh:
+            fh.write(json.dumps(manifest, indent=1) + "\n")
+        (sys.stderr if a.out == "-" else sys.stdout).write(json.dumps(manifest, indent=1) + "\n")
 
 
 if __name__ == "__main__":
