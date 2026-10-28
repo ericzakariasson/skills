@@ -19,13 +19,16 @@ Helper files live next to this file, in the same folder. Run commands from there
 
 ## 0. Get the helper files
 
-If the helper files are not next to this file, which happens when the skill was installed from a bot template that only carries SKILL.md, download them into a working folder on the box and run every command from there:
+The Page always comes from `page-template.tsx`, so these files are required. If they are not next to this file, which happens when the skill was installed from a bot template that only carries SKILL.md, download them into a working folder on the box and run every command from there:
 
 ```
 mkdir -p /tmp/grok-bot-story && cd /tmp/grok-bot-story
 base=https://raw.githubusercontent.com/ericzakariasson/skills/main/skills/grok-bot-story
-curl -fsSL --remote-name-all "$base/collect.py" "$base/collect_app_state.py" "$base/page-template.tsx" "$base/data-contract.md" "$base/onboarding.md"
+curl -fsSL --retry 3 --remote-name-all "$base/collect.py" "$base/collect_app_state.py" "$base/page-template.tsx" "$base/data-contract.md" "$base/onboarding.md"
+grep -q "DATA:BEGIN" page-template.tsx && grep -q "DATA:END" page-template.tsx && python3 collect.py --help >/dev/null && echo TEMPLATE_OK
 ```
+
+Go on only when the last line prints `TEMPLATE_OK`. If a download fails or the check doesn't print it, wait a minute and try once more. If it still fails, stop and tell the user the story template couldn't be downloaded, so you can't build the Page right now. Never build a story Page, site or card from your own design instead.
 
 ## 1. Onboarding (in chat, one widget at most)
 
@@ -70,13 +73,14 @@ python3 collect.py <same flags> --does /tmp/story/does.json [--icons /tmp/story/
   --tsx page-template.tsx --tsx-out /tmp/story/page.tsx
 ```
 
-Load the canvas skill first. Then read `/tmp/story/page.tsx` and pass it to WriteCanvas as a new Page titled "<Name> on Grok Bot". On a rebuild, pass the `canvas_id` of the existing Page instead, so the same Page is overwritten (section 5). Don't edit anything below the DATA block. If you must change the template, keep these rules:
+Load the canvas skill first. Then read `/tmp/story/page.tsx` and pass it to WriteCanvas, unchanged, as a new Page titled "<Name> on Grok Bot". On a rebuild, pass the `canvas_id` of the existing Page instead, so the same Page is overwritten (section 5).
 
-- Import only from `grok/canvas`.
-- No literal colors anywhere except inside `data:image` URLs. Use `useGrokTheme()` tokens, so the whole Page follows the viewer's light or dark mode.
-- No `for` loops. Use map, filter and reduce.
-- `width="column"`, and the same column width on every step.
-- No summary paragraph under the title, no per-step captions or explainer text, no Share on X button and no time zone picker.
+The template is the design. Every user's Page must look the same apart from their data:
+
+- Use `page-template.tsx` exactly as `collect.py` filled it. Change nothing outside the DATA block: no restyling, no new or reordered steps, no new copy, no other colors or fonts.
+- The result is always a Grok Bot Page made with WriteCanvas. Never write your own HTML, React app or slides for it, and never publish or host it as a website or app.
+- If WriteCanvas rejects the filled file, fix only the DATA values that caused it (for example a broken logo data URL, which you can drop) and try again. If it still fails, stop and tell the user what failed rather than rewriting the template.
+- If the user asks for a different look, tell them this skill builds the standard story Page, and build that.
 
 The steps, in order. A step with no data is dropped, never shown empty:
 
