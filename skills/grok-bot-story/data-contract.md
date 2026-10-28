@@ -17,7 +17,7 @@ zone: {name, hourly[24], daily[], peakHour, bestDay, bestWeekday, bestWeek} | nu
 funDay: {label, count, bots: [{name, count}]} | null
 totals: {messages, bots, activeDays, streak, skills, pages, routines, routinesSetUp, connectors, appConnectedCount}
 crew: [{key, name, does, msgs, shape, color}]
-connectors: [{name, icon, mono, value}]
+connectors: [{name, icon, mono, value}]      (icon is a data URL in data.json, asset:<file> in page.tsx)
 beyond: {computerUse, browserPages, tasks}
 published: [{name, tag, url, date, shape, color}]
 archetype: {primary, secondary, scores}      (bot only, not on the Page)
@@ -96,6 +96,12 @@ Never read: `sand-secrets.json`, cookies, tokens, session or credential files, k
 1. `--icons` overrides (data URL or absolute file path) win over everything. 2. App-state `logos` by connector name. 3. `link-favicon-cache` by sha256 of known hosts (alias table plus `name.com`, `www.`, `app.`, `.so`, `.io`). 4. A one or two letter tile.
 
 The Page draws logos at 24 px, so a source needs at least 48 px and ideally 72 px or more. collect.py fits each logo in 72 px when Pillow is installed, never upscales, keeps SVG as is, and lists any connector whose logo is under 48 px in `sources.lowResIcons`. For those, find a sharper one: the plugin logo cache through `--dump-logos`, or the service's public `apple-touch-icon` or large favicon. If none exists, drop that connector from `--icons` so it shows a letter tile. A blurry logo is worse than a letter tile.
+
+## Logos as Page assets
+
+`data.json` keeps each logo as a data URL. When `--tsx` fills the template, collect.py writes each logo to `--assets-dir` (default `/workspace/grok-bot-story/assets`; WriteCanvasAsset reads only under `/workspace`, `/home` or `/root`) as `<slug>.png` (72 px max, never upscaled; an SVG logo stays an inline data URL because Page assets must be PNG, JPEG, WebP or GIF), sets that connector's `icon` in the Page's DATA to `asset:<slug>.png`, and prints a manifest `{"<slug>.png": "/abs/path/<slug>.png"}` (also saved as `manifest.json` in that folder). At most 20 logos become assets, the Page asset limit; later connectors get `icon: ""` and show their `mono` letter tile. The bot uploads every manifest entry with WriteCanvasAsset after WriteCanvas, using the exact manifest key as the asset name. The template draws an `icon` that starts with `asset:` or `data:image/` with the Page's Image component at 24 px, and anything else as the letter tile.
+
+The filled `page.tsx` is also compacted (indentation and whole-line comments removed), so it fits in a single WriteCanvas call.
 
 ## Caveats
 

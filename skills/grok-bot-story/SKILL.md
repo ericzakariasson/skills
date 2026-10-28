@@ -62,24 +62,33 @@ python3 collect.py --tz <IANA zone> --tz-label "<Zone name>" --name "<Name>" --p
    - The app's plugin logo cache in the app-state folder (usually 96 to 112 px). Run `python3 collect.py --tz <IANA zone> --app-state DIR --dump-logos /tmp/story/logos`, open `contact-sheet.html`, and match logos to connector names by eye.
    - The service's own public site: its `apple-touch-icon` (180 px) or a large PNG or SVG favicon, downloaded with curl into `/tmp/story/logos`. Use the brand's own mark, not a screenshot, a wordmark or a third-party icon pack.
    - Otherwise leave it out; the Page shows a letter tile. Never upscale a 16 or 32 px favicon, and never map a logo you are not sure of. A letter tile is better than a blurry or wrong logo.
-   Pass the result as `--icons /tmp/story/icons.json` (`{"Connector name": "/tmp/story/logos/slack.png"}`, absolute paths or data URLs). collect.py fits each logo in 72 px without ever upscaling.
+   Pass the result as `--icons /tmp/story/icons.json` (`{"Connector name": "/tmp/story/logos/slack.png"}`, absolute paths or data URLs). collect.py fits each logo in 72 px without ever upscaling and writes it as a Page asset in section 3.
 
 ## 3. Build the Page
 
-Fill the template and write it:
+Fill the template. This also writes the connector logos as small PNG files for the Page:
 
 ```
 python3 collect.py <same flags> --does /tmp/story/does.json [--icons /tmp/story/icons.json] \
-  --tsx page-template.tsx --tsx-out /tmp/story/page.tsx
+  --tsx page-template.tsx --tsx-out /tmp/story/page.tsx --assets-dir /workspace/grok-bot-story/assets \
+  --out /tmp/story/data.json
 ```
 
-Load the canvas skill first. Then read `/tmp/story/page.tsx` and pass it to WriteCanvas, unchanged, as a new Page titled "<Name> on Grok Bot". On a rebuild, pass the `canvas_id` of the existing Page instead, so the same Page is overwritten (section 5).
+It prints a JSON manifest of asset names to file paths, for example `{"notion.png": "/workspace/grok-bot-story/assets/notion.png"}`, and saves the same manifest as `manifest.json` in that folder. WriteCanvasAsset only reads files under `/workspace`, `/home` or `/root`, so keep the assets folder there. In the Page each logo is referenced as `asset:<name>`. At most 20 logos become assets; any others show as letter tiles. An SVG logo stays inline in the Page, since Page assets must be PNG, JPEG, WebP or GIF.
+
+Load the canvas skill first. Then, in this order:
+
+1. Read `/tmp/story/page.tsx` and pass it to WriteCanvas in one call, unchanged, as a new Page titled "<Name> on Grok Bot". On a rebuild, pass the `canvas_id` of the existing Page instead, so the same Page is overwritten (section 5). The filled file is small enough for a single call; never split it into a stub plus edits.
+2. Take the `canvas_id` WriteCanvas returned and call WriteCanvasAsset once for every manifest entry, with that `canvas_id`, `name` set to the manifest key exactly (for example `notion.png`) and `path` set to its file. On a rebuild, upload them again; the same names replace the old images.
+3. Call ReadCanvas on the Page and check that it has no errors. A logo whose upload failed falls back to an empty box, so retry that one upload once; if it still fails, rebuild with that connector left out of `--icons` so it shows a letter tile.
+
+Avatars and the archetype art are drawn from shapes in the template, not uploaded, so the share card's PNG export always includes them. The logos are not on the share card.
 
 The template is the design. Every user's Page must look the same apart from their data:
 
 - Use `page-template.tsx` exactly as `collect.py` filled it. Change nothing outside the DATA block: no restyling, no new or reordered steps, no new copy, no other colors or fonts.
 - The result is always a Grok Bot Page made with WriteCanvas. Never write your own HTML, React app or slides for it, and never publish or host it as a website or app.
-- If WriteCanvas rejects the filled file, fix only the DATA values that caused it (for example a broken logo data URL, which you can drop) and try again. If it still fails, stop and tell the user what failed rather than rewriting the template.
+- If WriteCanvas rejects the filled file, fix only the DATA values that caused it (for example a broken logo, which you can drop from `--icons`) and try again. If it still fails, stop and tell the user what failed rather than rewriting the template.
 - If the user asks for a different look, tell them this skill builds the standard story Page, and build that.
 
 The steps, in order. A step with no data is dropped, never shown empty:
