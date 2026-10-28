@@ -1332,7 +1332,7 @@ const POSTER_SLOTS = [
 ];
 const POSTER_AVS = POSTER_SLOTS.slice(0, crew.length).map((q: { x: number; y: number; s: number; r: number }, i: number) => ({ ...q, k: crew[i].key, href: crew[i].av }));
 
-// Organic brand shapes: avatar silhouettes from the brand Shape Collection, washed out behind the card.
+// Organic brand shapes: avatar silhouettes, washed out behind the card.
 const POSTER_BLOBS = [
   { d: SHAPES.blob, x: 600, y: -190, s: 4.4, r: 18, c: 0, o: 0.09 },
   { d: SHAPES.pebble, x: -300, y: 560, s: 3.6, r: -24, c: 1, o: 0.08 },
