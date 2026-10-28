@@ -278,7 +278,13 @@ def slug(name):
 def write_assets(conns, dest):
     """Write each connector logo to dest as a PNG fit in ICON_PX and point its icon at asset:<file>. Page assets
     must be PNG, JPEG, WebP or GIF under /workspace, /home or /root, so SVG logos stay inline data URLs.
-    At most MAX_ASSETS files; the rest get no icon, so the Page draws the letter tile."""
+    At most MAX_ASSETS files; the rest get no icon, so the Page draws the letter tile. Needs Pillow; without it
+    no files are written and every logo stays an inline data URL."""
+    try:
+        import io
+        from PIL import Image
+    except Exception:
+        return {}
     manifest = {}
     os.makedirs(dest, exist_ok=True)
     for c in conns:
@@ -294,8 +300,6 @@ def write_assets(conns, dest):
         name = base + ".png"
         try:
             raw = base64.b64decode(shrink_icon(url).split(",", 1)[1])
-            import io
-            from PIL import Image
             im = Image.open(io.BytesIO(raw))
             if not raw.startswith(b"\x89PNG") or max(im.size) > ICON_PX:
                 im = im.convert("RGBA")
